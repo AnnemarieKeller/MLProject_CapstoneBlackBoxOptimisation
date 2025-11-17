@@ -1,8 +1,22 @@
 # weekly_data.py
 import os
 import numpy as np
-BASE_FUNC_FOLDER = "data/original/function_{functionNo}"
-BASE_UPDATES_FOLDER = "data/weeklyAddition/week{weekNo}SubmissionProcessed"
+# -----------------------------
+def find_repo_root(start_path=None):
+    if start_path is None:
+        start_path = os.getcwd()  # start from current working directory
+    current = start_path
+    while current != os.path.dirname(current):  # stop at filesystem root
+        if os.path.isdir(os.path.join(current, ".git")):
+            return current
+        current = os.path.dirname(current)
+    raise FileNotFoundError("Could not find repo root (no .git folder found)")
+
+REPO_PATH = find_repo_root()
+
+
+BASE_FUNC_FOLDER = os.path.join(REPO_PATH, "data/original/function_{functionNo}")
+BASE_UPDATES_FOLDER = os.path.join(REPO_PATH, "data/weeklyAddition/week{weekNo}SubmissionProcessed")
 
 def load_weekly_function_data(function_folders, weekly_inputs_folder, weekly_outputs_folder):
     """
