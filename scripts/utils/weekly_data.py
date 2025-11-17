@@ -3,9 +3,9 @@ import os
 import numpy as np
 # -----------------------------
 # --- Detect repo root dynamically ---
-# Assumes this script lives inside your repo somewhere
+
 REPO_PATH = os.path.dirname(os.path.abspath(__file__))  # folder containing this script
-# Or, if you want one level up:
+# Or one level up:
 # REPO_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 BASE_FUNC_FOLDER = os.path.join(REPO_PATH, "data/original/function_{functionNo}")
