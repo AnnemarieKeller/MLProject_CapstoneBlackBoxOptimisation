@@ -81,11 +81,11 @@ def get_weekly_inputs(functionNo, weekNo):
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
     
     # Load initial inputs
-    initial_file = os.path.join(base_func_folder, "inputs.npy")
+    initial_file = os.path.join(base_func_folder, "initial_inputs.npy")
     initial_inputs = list(np.load(initial_file, allow_pickle=True))
     
     # Load weekly update inputs
-    weekly_file = os.path.join(updates_folder, f"initial_inputs.npy")
+    weekly_file = os.path.join(updates_folder, f"inputs.npy")
     weekly_inputs = list(np.load(weekly_file, allow_pickle=True))
     
     # Combine (cumulative)
@@ -108,11 +108,11 @@ def get_weekly_outputs(functionNo, weekNo):
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
     
     # Load initial outputs
-    initial_file = os.path.join(base_func_folder, "initial_outputs.npy")
+    initial_file = os.path.join(base_func_folder, "initial_inputs.npy")
     initial_outputs = list(np.load(initial_file, allow_pickle=True))
     
     # Load weekly update outputs
-    weekly_file = os.path.join(updates_folder, f"function_{function_no}_outputs.npy")
+    weekly_file = os.path.join(updates_folder, f"outputs.npy")
     weekly_outputs = list(np.load(weekly_file, allow_pickle=True))
     
     # Combine (cumulative)
