@@ -7,7 +7,7 @@ import numpy as np
 # REPO_PATH = os.path.dirname(os.path.abspath(__file__))  # folder containing this script
 # Or one level up:
 # REPO_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-REPO_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+REPO_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
 BASE_FUNC_FOLDER = os.path.join(REPO_PATH, "data/original/function_{functionNo}")
 BASE_UPDATES_FOLDER = os.path.join(REPO_PATH, "data/weeklyAddition/week{weekNo}SubmissionProcessed")
