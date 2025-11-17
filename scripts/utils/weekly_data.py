@@ -1,6 +1,8 @@
 # weekly_data.py
 import os
 import numpy as np
+BASE_ORIGINAL_FOLDER = "data/original"
+BASE_UPDATES_FOLDER = "data/weeklyAddition"
 
 def load_weekly_function_data(function_folders, weekly_inputs_folder, weekly_outputs_folder):
     """
@@ -74,7 +76,6 @@ def get_weekly_inputs(function_no, week):
     Returns:
     - list of numpy arrays: combined inputs
     """
-    # Base folders using f-strings
     base_func_folder = f"data/original/function_{function_no}"
     updates_folder = f"data/updates/week{week}update"
     
@@ -90,7 +91,7 @@ def get_weekly_inputs(function_no, week):
     combined_inputs = initial_inputs + weekly_inputs
     return combined_inputs
 
-def get_weekly_outputs(function_no, week):
+def get_weekly_outputs(functionNo, weekNo):
     """
     Combine initial outputs from the original data with the weekly update for a given week.
     
@@ -101,8 +102,8 @@ def get_weekly_outputs(function_no, week):
     Returns:
     - list of numpy arrays: combined outputs
     """
-    base_func_folder = f"data/original/function_{function_no}"
-    updates_folder = f"data/updates/week{week}update"
+    base_func_folder = os.path.join(BASE_ORIGINAL_FOLDER, f"function_{functionNo}")
+    updates_folder = os.path.join(BASE_UPDATES_FOLDER, f"week{weekNo}SubmissionProcessed")
     
     # Load initial outputs
     initial_file = os.path.join(base_func_folder, "outputs.npy")
