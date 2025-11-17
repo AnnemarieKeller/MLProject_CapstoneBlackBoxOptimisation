@@ -1,4 +1,4 @@
-# data_utils.py
+# weekly_data.py
 import os
 import numpy as np
 
@@ -62,45 +62,56 @@ def flatten_outputs(data, function_folders):
 
     return all_weeks_array
 
-import numpy as np
-import os
 
-def get_weekly_inputs(func_folder, weekly_base_folder, week):
+def get_weekly_inputs(function_no, week):
     """
-    Combine the initial function input with the weekly update for a given week.
-
-    Args:
-        func_folder (str): Folder containing the initial function input (initial_input.npy)
-        weekly_base_folder (str): Base folder containing weekly update folders like week1update, week2update, ...
-        week (int): Week number to read
-
-    Returns:
-        list of numpy arrays: combined inputs
-    """
-    # Load initial input
-    initial_input = np.load(os.path.join(func_folder, "initial_input.npy"), allow_pickle=True)
-
-    # Load weekly input
-    weekly_folder = os.path.join(weekly_base_folder, f"week{week}update")
-    weekly_input = np.load(os.path.join(weekly_folder, "inputs.npy"), allow_pickle=True)
-
-    # Combine
-    combined = list(initial_input) + list(weekly_input)
-    return combined
-  
-def get_weekly_outputs(weekly_base_folder, week):
-    """
-    Get the outputs for a given week.
-
-    Args:
-        weekly_base_folder (str): Base folder containing weekly update folders like week1update, week2update, ...
-        week (int): Week number to read
-
-    Returns:
-        list of numpy arrays: weekly outputs
-    """
-    weekly_folder = os.path.join(weekly_base_folder, f"week{week}update")
-    weekly_output = np.load(os.path.join(weekly_folder, "outputs.npy"), allow_pickle=True)
+    Combine initial inputs from the original data with the weekly update for a given week.
     
-    return list(weekly_output)
+    Parameters:
+    - function_no: int, e.g., 1
+    - week: int, e.g., 4
+    
+    Returns:
+    - list of numpy arrays: combined inputs
+    """
+    # Base folders using f-strings
+    base_func_folder = f"data/original/function_{function_no}"
+    updates_folder = f"data/updates/week{week}update"
+    
+    # Load initial inputs
+    initial_file = os.path.join(base_func_folder, "inputs.npy")
+    initial_inputs = list(np.load(initial_file, allow_pickle=True))
+    
+    # Load weekly update inputs
+    weekly_file = os.path.join(updates_folder, f"function_{function_no}_inputs.npy")
+    weekly_inputs = list(np.load(weekly_file, allow_pickle=True))
+    
+    # Combine (cumulative)
+    combined_inputs = initial_inputs + weekly_inputs
+    return combined_inputs
 
+def get_weekly_outputs(function_no, week):
+    """
+    Combine initial outputs from the original data with the weekly update for a given week.
+    
+    Parameters:
+    - function_no: int
+    - week: int
+    
+    Returns:
+    - list of numpy arrays: combined outputs
+    """
+    base_func_folder = f"data/original/function_{function_no}"
+    updates_folder = f"data/updates/week{week}update"
+    
+    # Load initial outputs
+    initial_file = os.path.join(base_func_folder, "outputs.npy")
+    initial_outputs = list(np.load(initial_file, allow_pickle=True))
+    
+    # Load weekly update outputs
+    weekly_file = os.path.join(updates_folder, f"function_{function_no}_outputs.npy")
+    weekly_outputs = list(np.load(weekly_file, allow_pickle=True))
+    
+    # Combine (cumulative)
+    combined_outputs = initial_outputs + weekly_outputs
+    return combined_outputs
