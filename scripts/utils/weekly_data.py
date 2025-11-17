@@ -70,8 +70,8 @@ def get_weekly_inputs(functionNo, weekNo):
     Combine initial inputs from the original data with the weekly update for a given week.
     
     Parameters:
-    - function_no: int, e.g., 1
-    - week: int, e.g., 4
+    - functionNo: int, e.g., 1
+    - weekNo: int, e.g., 4
     
     Returns:
     - list of numpy arrays: combined inputs
@@ -97,8 +97,8 @@ def get_weekly_outputs(functionNo, weekNo):
     Combine initial outputs from the original data with the weekly update for a given week.
     
     Parameters:
-    - function_no: int
-    - week: int
+    - functionNo: int
+    - weekNo: int
     
     Returns:
     - list of numpy arrays: combined outputs
