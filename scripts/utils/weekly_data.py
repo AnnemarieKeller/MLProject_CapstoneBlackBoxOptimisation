@@ -101,8 +101,9 @@ def get_weekly_inputs(functionNo, weekNo):
     weekly_file = os.path.join(updates_folder, "inputs.txt")
 
     with open(weekly_file, "r") as f:
-        weekly_lines = [line.strip() for line in f if line.strip()]
-        weekly_data = [eval(line.strip()) for line in weekly_lines]  # list of lists of arrays
+      file_content = f.read().strip()  # read the entire file
+      if file_content:  # make sure it's not empty
+         weekly_data = eval(file_content) 
 
     # Pick the update for this function
     func_weekly_data = [np.array(week_update[function_no - 1]) for week_update in weekly_data]
