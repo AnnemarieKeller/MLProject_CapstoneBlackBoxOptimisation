@@ -1,6 +1,7 @@
 # weekly_data.py
 import os
 import numpy as np
+import ast, re
 # -----------------------------
 # --- Detect repo root dynamically ---
 
