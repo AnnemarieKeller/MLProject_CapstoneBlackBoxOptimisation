@@ -163,7 +163,8 @@ def get_weekly_outputs(functionNo, weekNo):
             raise IndexError(f"Function {functionNo} not found in weekly outputs")
         line_for_function = lines[functionNo - 1]
         cleaned = line_for_function.replace('np.float64(', '').replace(')', '')
-        func_weekly_outputs.extend([float(v) for v in ast.literal_eval(f"[{cleaned}]")])
+        print(cleaned)
+        func_weekly_outputs.extend([float(v) for v in ast.literal_eval(cleaned)])
     else:
         # Old format: one line contains all functions
         for line in lines:
