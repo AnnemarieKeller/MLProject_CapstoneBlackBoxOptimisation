@@ -123,8 +123,8 @@ def get_weekly_inputs(functionNo, weekNo):
     return combined_inputs
 def get_weekly_outputs(functionNo, weekNo):
     """
-    Combine initial outputs with weekly outputs for a given function.
-    Works for both scalar outputs and list outputs.
+    Load initial outputs + weekly outputs for a function.
+    Supports both scalar and list-based outputs.
     """
 
     base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
@@ -140,9 +140,9 @@ def get_weekly_outputs(functionNo, weekNo):
     initial_outputs = []
     for x in raw_initial:
         if isinstance(x, (float, int, np.float64, np.int64)):
-            initial_outputs.append(float(x))                     # keep scalar
+            initial_outputs.append(float(x))              # scalar
         else:
-            initial_outputs.append([float(v) for v in x])        # convert list values to float
+            initial_outputs.append([float(v) for v in x]) # list
 
     # --- Load weekly outputs ---
     weekly_file = os.path.join(updates_folder, "outputs.txt")
@@ -157,18 +157,24 @@ def get_weekly_outputs(functionNo, weekNo):
             if not line:
                 continue
 
-            # Clean np.float64() text
+            # remove np.float64() wrappers
             cleaned = line.replace("np.float64(", "").replace(")", "")
             values = ast.literal_eval(f"[{cleaned}]")
 
-            # Select this function's output
             value = values[functionNo - 1]
 
-            # Convert to pure float
-            func_weekly_outputs.append(float(value))
+            # --- handle scalar ---
+            if isinstance(value, (float, int)):
+                func_weekly_outputs.append(float(value))
 
-    # --- Combine ---
-    combined = initial_outputs + func_weekly_outputs
-    return combined
+            # --- handle list: convert each element ---
+            elif isinstance(value, list):
+                func_weekly_outputs.append([float(v) for v in value])
+
+            else:
+                raise TypeError(f"Unexpected output type: {type(value)} → {value}")
+
+    # return combined
+    return initial_outputs + func_weekly_outputs
 
 
