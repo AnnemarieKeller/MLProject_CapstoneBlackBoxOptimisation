@@ -123,46 +123,52 @@ def get_weekly_inputs(functionNo, weekNo):
     return combined_inputs
 def get_weekly_outputs(functionNo, weekNo):
     """
-    Combine initial outputs from the original data with the weekly update for a given week.
-    
-    Parameters:
-    - functionNo: int
-    - weekNo: int
-    
-    Returns:
-    - list of numpy arrays: combined outputs
+    Combine initial outputs with weekly outputs for a given function.
+    Works for both scalar outputs and list outputs.
     """
-    
+
     base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
-    
-    # Load initial outputs
+
+    # --- Load initial outputs ---
     initial_file = os.path.join(base_func_folder, "initial_outputs.npy")
     if not os.path.exists(initial_file):
         raise FileNotFoundError(f"Initial outputs not found: {initial_file}")
-    initial_outputs = [list(map(float, x)) for x in np.load(initial_file, allow_pickle=True)]
-    
-    # Load weekly outputs
+
+    raw_initial = np.load(initial_file, allow_pickle=True)
+
+    initial_outputs = []
+    for x in raw_initial:
+        if isinstance(x, (float, int, np.float64, np.int64)):
+            initial_outputs.append(float(x))                     # keep scalar
+        else:
+            initial_outputs.append([float(v) for v in x])        # convert list values to float
+
+    # --- Load weekly outputs ---
     weekly_file = os.path.join(updates_folder, "outputs.txt")
-    
-    
+    if not os.path.exists(weekly_file):
+        raise FileNotFoundError(f"Weekly outputs not found: {weekly_file}")
+
     func_weekly_outputs = []
 
-    with open(weekly_file, 'r') as f:
+    with open(weekly_file, "r") as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
 
-            # Clean np.float64 wrappers
-            cleaned = line.replace('np.float64(', '').replace(')', '')
-            outputs_line = ast.literal_eval(f'[{cleaned}]')
+            # Clean np.float64() text
+            cleaned = line.replace("np.float64(", "").replace(")", "")
+            values = ast.literal_eval(f"[{cleaned}]")
 
-            # Select only this function's output
-            func_weekly_outputs.append(outputs_line[functionNo - 1])
+            # Select this function's output
+            value = values[functionNo - 1]
 
-    # Combine initial and weekly outputs
-    combined_outputs = initial_outputs + func_weekly_outputs
+            # Convert to pure float
+            func_weekly_outputs.append(float(value))
 
-    return combined_outputs
+    # --- Combine ---
+    combined = initial_outputs + func_weekly_outputs
+    return combined
+
 
