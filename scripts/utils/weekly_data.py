@@ -103,21 +103,21 @@ def get_weekly_inputs(functionNo, weekNo):
     with open(weekly_file, "r") as f:
         content = f.read().strip()
     
-    # Split out the separate sets in the text file
+    # Split into separate sets
     raw_sets = re.split(r'\]\s*\[', content)
     raw_sets = [s.strip('[]') for s in raw_sets]
     
-    # Parse each set into lists of numpy arrays
-    weekly_sets = []
+    all_sets = []
     for s in raw_sets:
+        # Extract numbers inside array(...) and convert to plain lists
         arrays_raw = re.findall(r'array\((.*?)\)', s, re.DOTALL)
-        instance_set = [np.array(eval(a)) for a in arrays_raw]  # only small eval slices
-        weekly_sets.append(instance_set)
+        instance_set = [list(ast.literal_eval(a)) for a in arrays_raw]
+        all_sets.append(instance_set)
     
-    # Pick this function's update from each week
-    func_weekly_data = [week_update[functionNo - 1] for week_update in weekly_sets if len(week_update) >= functionNo]
     
-    # Combine initial inputs with weekly updates
+    func_weekly_data = [week_update[functionNo - 1] for week_update in all_sets]
+    
+   
     combined_inputs = initial_inputs + func_weekly_data
     
     return combined_inputs
