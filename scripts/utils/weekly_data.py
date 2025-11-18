@@ -129,6 +129,17 @@ def flatten(x):
         else:
             yield item
 
+import os
+import numpy as np
+import ast
+
+def flatten(x):
+    for item in x:
+        if isinstance(item, (list, np.ndarray)):
+            yield from flatten(item)
+        else:
+            yield item
+
 def get_weekly_outputs(functionNo, weekNo):
     """
     Return initial outputs + weekly updates for a given function.
@@ -142,8 +153,7 @@ def get_weekly_outputs(functionNo, weekNo):
         raise FileNotFoundError(f"Initial outputs not found: {initial_file}")
 
     raw_initial = np.load(initial_file, allow_pickle=True)
-    flat_initial = [float(v) for v in flatten(raw_initial)]   # 10 values
-
+    flat_initial = np.array(list(flatten(raw_initial)), dtype=float)  # flattened initial outputs
 
     # --- Load weekly outputs ---
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
@@ -151,33 +161,30 @@ def get_weekly_outputs(functionNo, weekNo):
 
     if not os.path.exists(weekly_file):
         raise FileNotFoundError(f"Weekly outputs not found: {weekly_file}")
-     all_weeks_array = []
-        current_line = ""
-            with open(weekly_file, 'r') as f:
-                for line in f:
-                stripped = line.strip()
-                if not stripped:
-                    continue
-                current_line += stripped
-                if stripped.endswith("]"):
-                    all_weeks_array.append(ast.literal_eval(current_line))
-                    current_line = ""
-    
-            all_weeks_array = np.array(all_weeks_array, dtype=float)  # shape: (num_samples, num_functions)
-    
+
+    all_weeks_array = []
+    current_line = ""
+    with open(weekly_file, 'r') as f:
+        for line in f:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            current_line += stripped
+            if stripped.endswith("]"):
+                all_weeks_array.append(ast.literal_eval(current_line))
+                current_line = ""
+
+    all_weeks_array = np.array(all_weeks_array, dtype=float)  # shape: (num_samples, num_functions)
+
     # --- Extract only the values for this function ---
     weekly_values = all_weeks_array[:, functionNo - 1]  # zero-indexed
-    
+
     # --- Combine initial + weekly ---
     combined_outputs = np.concatenate([flat_initial, weekly_values])
 
-
-    # Combine initial (10) + weekly (N lines)
-    combined_outputs = flat_initial + func_weekly_outputs
-
-    # Debug prints
+    # --- Debug prints ---
     print("Initial count:", len(flat_initial))
-    print("Weekly count:", len(func_weekly_outputs))
+    print("Weekly count:", len(weekly_values))
     print("Combined:", len(combined_outputs))
 
     return combined_outputs
