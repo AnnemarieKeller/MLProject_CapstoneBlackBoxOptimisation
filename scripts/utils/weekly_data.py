@@ -141,26 +141,17 @@ def flatten(x):
             yield item
 
 def get_weekly_outputs(functionNo, weekNo):
-    """
-    Return initial outputs + weekly updates for a given function.
-    Weekly file: each line = one sample, each sample has 8 function outputs.
-    """
+    import re
+
     # --- Load initial outputs ---
     base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
     initial_file = os.path.join(base_func_folder, "initial_outputs.npy")
-
-    if not os.path.exists(initial_file):
-        raise FileNotFoundError(f"Initial outputs not found: {initial_file}")
-
     raw_initial = np.load(initial_file, allow_pickle=True)
-    flat_initial = np.array(list(flatten(raw_initial)), dtype=float)  # flattened initial outputs
+    flat_initial = np.array(list(flatten(raw_initial)), dtype=float)
 
     # --- Load weekly outputs ---
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
     weekly_file = os.path.join(updates_folder, "outputs.txt")
-
-    if not os.path.exists(weekly_file):
-        raise FileNotFoundError(f"Weekly outputs not found: {weekly_file}")
 
     all_weeks_array = []
     current_line = ""
@@ -171,18 +162,16 @@ def get_weekly_outputs(functionNo, weekNo):
                 continue
             current_line += stripped
             if stripped.endswith("]"):
-                all_weeks_array.append(ast.literal_eval(current_line))
+                # --- Remove np.float64(...) ---
+                cleaned_line = re.sub(r"np\.float64\((.*?)\)", r"\1", current_line)
+                all_weeks_array.append(ast.literal_eval(cleaned_line))
                 current_line = ""
 
-    all_weeks_array = np.array(all_weeks_array, dtype=float)  # shape: (num_samples, num_functions)
+    all_weeks_array = np.array(all_weeks_array, dtype=float)
+    weekly_values = all_weeks_array[:, functionNo - 1]
 
-    # --- Extract only the values for this function ---
-    weekly_values = all_weeks_array[:, functionNo - 1]  # zero-indexed
-
-    # --- Combine initial + weekly ---
     combined_outputs = np.concatenate([flat_initial, weekly_values])
 
-    # --- Debug prints ---
     print("Initial count:", len(flat_initial))
     print("Weekly count:", len(weekly_values))
     print("Combined:", len(combined_outputs))
