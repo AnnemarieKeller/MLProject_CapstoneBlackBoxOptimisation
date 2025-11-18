@@ -149,6 +149,9 @@ def get_weekly_outputs(functionNo, weekNo):
     
     weekly_data = []
     with open(weekly_file, "r") as f:
+       content = f.read().strip()
+       print("First 200 chars of file:", content[:200])
+    with open(weekly_file, "r") as f:
         for line in f:
             line = line.strip()
             if not line:
