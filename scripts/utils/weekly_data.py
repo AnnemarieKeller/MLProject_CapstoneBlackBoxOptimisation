@@ -141,7 +141,8 @@ def get_weekly_outputs(functionNo, weekNo):
     flat_initial = []
     for x in raw_initial:
        if isinstance(x, list) or isinstance(x, np.ndarray):
-          flat_initial.extend(x)  # use extend, not append
+          flat_initial.extend(x)
+           print("used extend")# use extend, not append
        else:
           flat_initial.append(x)
     
@@ -163,7 +164,7 @@ def get_weekly_outputs(functionNo, weekNo):
             raise IndexError(f"Function {functionNo} not found in weekly outputs")
         line_for_function = lines[functionNo - 1]
         cleaned = line_for_function.replace('np.float64(', '').replace(')', '')
-        print(cleaned)
+        print("cleaned", cleaned)
         func_weekly_outputs.extend([float(v) for v in ast.literal_eval(cleaned)])
     else:
         # Old format: one line contains all functions
