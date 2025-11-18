@@ -142,7 +142,7 @@ def get_weekly_outputs(functionNo, weekNo):
     for x in raw_initial:
        if isinstance(x, list) or isinstance(x, np.ndarray):
           flat_initial.extend(x)
-           print("used extend")# use extend, not append
+          print("used extend")# use extend, not append
        else:
           flat_initial.append(x)
     
