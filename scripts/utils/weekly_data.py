@@ -151,17 +151,25 @@ def get_weekly_outputs(functionNo, weekNo):
 
     if not os.path.exists(weekly_file):
         raise FileNotFoundError(f"Weekly outputs not found: {weekly_file}")
-
-    func_weekly_outputs = []
-
-    with open(weekly_file, "r") as f:
-        lines = [line.strip() for line in f if line.strip()]
-
-    # Each line = one sample, each sample has 8 function outputs
-    for line in lines:
-        cleaned = line.replace("np.float64(", "").replace(")", "")
-        values = ast.literal_eval(f"[{cleaned}]")      # list of 8 numbers
-        func_weekly_outputs.append(float(values[functionNo - 1]))
+     all_weeks_array = []
+        current_line = ""
+            with open(weekly_file, 'r') as f:
+                for line in f:
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                current_line += stripped
+                if stripped.endswith("]"):
+                    all_weeks_array.append(ast.literal_eval(current_line))
+                    current_line = ""
+    
+            all_weeks_array = np.array(all_weeks_array, dtype=float)  # shape: (num_samples, num_functions)
+    
+    # --- Extract only the values for this function ---
+    weekly_values = all_weeks_array[:, functionNo - 1]  # zero-indexed
+    
+    # --- Combine initial + weekly ---
+    combined_outputs = np.concatenate([flat_initial, weekly_values])
 
 
     # Combine initial (10) + weekly (N lines)
