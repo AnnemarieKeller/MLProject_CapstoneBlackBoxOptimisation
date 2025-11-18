@@ -185,4 +185,9 @@ def get_weekly_outputs(functionNo, weekNo):
     # Combine initial + weekly outputs
     combined_outputs = flat_initial + func_weekly_outputs
 
+    # ---- DEBUG PRINTS ----
+    print("Initial count:", len(flat_initial))
+    print("Weekly count:", len(func_weekly_outputs))
+    print("Combined:", len(combined_outputs))
+
     return combined_outputs
