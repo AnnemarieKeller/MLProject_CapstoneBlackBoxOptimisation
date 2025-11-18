@@ -81,46 +81,37 @@ def flatten_outputs(data, function_folders):
 def get_weekly_inputs(functionNo, weekNo):
     """
     Combine initial inputs from the original data with the weekly update for a given week.
-    
-    Parameters:
-    - functionNo: int, e.g., 1
-    - weekNo: int, e.g., 4
-    
-    Returns:
-    - list of numpy arrays: combined inputs
+    Returns a list of numpy arrays (one per sample) for the given function.
     """
-    
+    import ast, re, numpy as np, os
+
     base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
     
     # Load initial inputs
     initial_file = os.path.join(base_func_folder, "initial_inputs.npy")
-    initial_inputs = [list(map(float, x)) for x in np.load(initial_file, allow_pickle=True)]
-    
-     # --- Load weekly updates ---
-    
+    initial_inputs = [np.array(x, dtype=float) for x in np.load(initial_file, allow_pickle=True)]
+
+    # Load weekly updates
     weekly_file = os.path.join(updates_folder, "inputs.txt")
     with open(weekly_file, "r") as f:
-        content = f.read().strip()
-    
-    # Split into separate sets
-    raw_sets = re.split(r'\]\s*\[', content)
-    raw_sets = [s.strip('[]') for s in raw_sets]
-    
-    all_sets = []
-    for s in raw_sets:
-        # Extract numbers inside array(...) and convert to plain lists
-        arrays_raw = re.findall(r'array\((.*?)\)', s, re.DOTALL)
-        instance_set = [list(ast.literal_eval(a)) for a in arrays_raw]
-        all_sets.append(instance_set)
-    
-    
-    func_weekly_data = [week_update[functionNo - 1] for week_update in all_sets]
-    
-   
+        lines = [line.strip() for line in f if line.strip()]
+
+    func_weekly_data = []
+    for line in lines:
+        # Remove "array(...)" wrappers and parse into Python lists
+        arrays = re.findall(r'array\((.*?)\)', line)
+        arrays = [np.array(ast.literal_eval(a), dtype=float) for a in arrays]
+
+        if functionNo - 1 < len(arrays):
+            func_weekly_data.append(arrays[functionNo - 1])
+        else:
+            # If this line doesn't have enough functions, skip
+            continue
+
     combined_inputs = initial_inputs + func_weekly_data
-    
     return combined_inputs
+
 def flatten(x):
     """Recursively flatten nested lists/arrays."""
     for item in x:
