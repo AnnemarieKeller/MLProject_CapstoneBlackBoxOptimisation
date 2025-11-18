@@ -95,7 +95,7 @@ def get_weekly_inputs(functionNo, weekNo):
     
     # Load initial inputs
     initial_file = os.path.join(base_func_folder, "initial_inputs.npy")
-    initial_inputs = list(np.load(initial_file, allow_pickle=True))
+    initial_inputs = [list(x) for x in np.load(initial_file, allow_pickle=True)]
     
      # --- Load weekly updates ---
     
