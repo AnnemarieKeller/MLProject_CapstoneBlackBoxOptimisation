@@ -144,29 +144,25 @@ def get_weekly_outputs(functionNo, weekNo):
     
     # Load weekly outputs
     weekly_file = os.path.join(updates_folder, "outputs.txt")
-    if not os.path.exists(weekly_file):
-        print(f"Weekly outputs not found, returning only initial outputs: {weekly_file}")
-        return initial_outputs
     
-    weekly_data = []
-    with open(weekly_file, "r") as f:
-       content = f.read().strip()
-       print("First 200 chars of file:", content[:200])
-    with open(weekly_file, "r") as f:
+    
+    func_weekly_outputs = []
+
+    with open(weekly_file, 'r') as f:
         for line in f:
             line = line.strip()
             if not line:
-                continue  # skip empty lines
-            # outputs are lists of numbers, so we can safely use eval
-            weekly_line = eval(line)
-            weekly_data.append(weekly_line)
-    
-    # Pick this function's output
-    func_weekly_data = [week_update[functionNo - 1] for week_update in weekly_data]
-    
-    # Convert to np.float64 arrays for consistency
-    func_weekly_data = [np.array(x, dtype=np.float64) for x in func_weekly_data]
-    
-    # Combine
-    combined_outputs = initial_outputs + func_weekly_data
+                continue
+
+            # Clean np.float64 wrappers
+            cleaned = line.replace('np.float64(', '').replace(')', '')
+            outputs_line = ast.literal_eval(f'[{cleaned}]')
+
+            # Select only this function's output
+            func_weekly_outputs.append(outputs_line[functionNo - 1])
+
+    # Combine initial and weekly outputs
+    combined_outputs = initial_outputs + func_weekly_outputs
+
     return combined_outputs
+
