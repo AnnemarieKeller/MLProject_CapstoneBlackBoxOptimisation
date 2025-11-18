@@ -95,7 +95,7 @@ def get_weekly_inputs(functionNo, weekNo):
     
     # Load initial inputs
     initial_file = os.path.join(base_func_folder, "initial_inputs.npy")
-    initial_inputs = [list(x) for x in np.load(initial_file, allow_pickle=True)]
+    initial_inputs = [list(map(float, x)) for x in np.load(initial_file, allow_pickle=True)]
     
      # --- Load weekly updates ---
     
@@ -140,7 +140,7 @@ def get_weekly_outputs(functionNo, weekNo):
     initial_file = os.path.join(base_func_folder, "initial_outputs.npy")
     if not os.path.exists(initial_file):
         raise FileNotFoundError(f"Initial outputs not found: {initial_file}")
-    initial_outputs = list(np.load(initial_file, allow_pickle=True))
+    initial_outputs = [list(map(float, x)) for x in np.load(initial_file, allow_pickle=True)]
     
     # Load weekly outputs
     weekly_file = os.path.join(updates_folder, "outputs.txt")
