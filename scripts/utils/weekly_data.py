@@ -139,7 +139,7 @@ def get_weekly_outputs(functionNo, weekNo):
     # Ensure everything is a scalar float
   # Flatten initial outputs
     flat_initial = []
-    for x in initial_outputs:
+    for x in raw_initial:
        if isinstance(x, list) or isinstance(x, np.ndarray):
           flat_initial.extend(x)  # use extend, not append
        else:
