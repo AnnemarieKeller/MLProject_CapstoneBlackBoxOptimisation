@@ -172,7 +172,7 @@ def get_weekly_outputs(functionNo, weekNo):
             func_weekly_outputs.append(float(values[functionNo - 1]))
 
     # Combine initial + weekly outputs into **flat list of floats**
-    combined_outputs = initial_outputs + func_weekly_outputs
+    combined_outputs = flat_initial + func_weekly_outputs
     
     return combined_outputs
 
