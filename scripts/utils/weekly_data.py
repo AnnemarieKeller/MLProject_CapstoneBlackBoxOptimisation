@@ -101,18 +101,21 @@ def get_weekly_inputs(functionNo, weekNo):
     weekly_file = os.path.join(updates_folder, "inputs.txt")
 
     with open(weekly_file, "r") as f:
-      file_content = f.read().strip()  # read the entire file
-      if file_content:  # make sure it's not empty
-         weekly_data = eval(file_content) 
-
-    # Pick the update for this function
-    func_weekly_data = [np.array(week_update[function_no - 1]) for week_update in weekly_data]
-
-    # --- Combine initial inputs + weekly updates ---
-    combined_data = initial_inputs + func_weekly_data
-
-    return combined_data
-
+        file_content = f.read().strip()
+    
+    # Replace 'array(' with 'np.array(' so eval works
+    file_content = file_content.replace("array(", "np.array(")
+    
+    # Evaluate with numpy available
+    weekly_data = eval(file_content, {"np": np})
+    
+    # Pick this function's update from each week
+    func_weekly_data = [np.array(week_update[functionNo - 1]) for week_update in weekly_data]
+    
+    # Combine
+    combined_inputs = initial_inputs + func_weekly_data
+    return combined_inputs
+    
 def get_weekly_outputs(functionNo, weekNo):
     """
     Combine initial outputs from the original data with the weekly update for a given week.
@@ -130,26 +133,32 @@ def get_weekly_outputs(functionNo, weekNo):
     
     # Load initial outputs
     initial_file = os.path.join(base_func_folder, "initial_outputs.npy")
+    if not os.path.exists(initial_file):
+        raise FileNotFoundError(f"Initial outputs not found: {initial_file}")
     initial_outputs = list(np.load(initial_file, allow_pickle=True))
     
-    # Load weekly update outputs
-    
+    # Load weekly outputs
     weekly_file = os.path.join(updates_folder, "outputs.txt")
-
+    if not os.path.exists(weekly_file):
+        print(f"Weekly outputs not found, returning only initial outputs: {weekly_file}")
+        return initial_outputs
+    
     weekly_data = []
     with open(weekly_file, "r") as f:
         for line in f:
-            line = line.strip()  # remove leading/trailing spaces
+            line = line.strip()
             if not line:
                 continue  # skip empty lines
-            # eval converts string list of np.float64 to actual np.float64 list
+            # outputs are lists of numbers, so we can safely use eval
             weekly_line = eval(line)
-            weekly_data.append(np.array(weekly_line, dtype=np.float64))
-
-    # Pick the output for this function
-    func_weekly_data = [week_update[function_no - 1] for week_update in weekly_data]
-
-    # --- Combine initial outputs + weekly outputs ---
+            weekly_data.append(weekly_line)
+    
+    # Pick this function's output
+    func_weekly_data = [week_update[functionNo - 1] for week_update in weekly_data]
+    
+    # Convert to np.float64 arrays for consistency
+    func_weekly_data = [np.array(x, dtype=np.float64) for x in func_weekly_data]
+    
+    # Combine
     combined_outputs = initial_outputs + func_weekly_data
-
     return combined_outputs
