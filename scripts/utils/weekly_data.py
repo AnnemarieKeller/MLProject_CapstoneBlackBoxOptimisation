@@ -146,13 +146,14 @@ def get_weekly_outputs(functionNo, weekNo):
     
     initial_outputs = []
     raw_initial = np.load(initial_file, allow_pickle=True)
-    
-    # Convert each element to float (handle scalars or arrays)
+
     for x in raw_initial:
-        if isinstance(x, np.ndarray) or isinstance(x, list):
-            initial_outputs.append([float(v) for v in x])
-        else:
-            initial_outputs.append(float(x))
+       if isinstance(x, (np.ndarray, list)):
+        # Convert each element to float
+         initial_outputs.append([float(v) for v in x])
+       else:
+        # Wrap scalar in a list
+         initial_outputs.append([float(x)])
 
     # --- Load weekly outputs ---
     weekly_file = os.path.join(updates_folder, "outputs.txt")
