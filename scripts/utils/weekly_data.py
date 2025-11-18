@@ -99,23 +99,27 @@ def get_weekly_inputs(functionNo, weekNo):
      # --- Load weekly updates ---
     
     weekly_file = os.path.join(updates_folder, "inputs.txt")
-
     with open(weekly_file, "r") as f:
-        file_content = f.read().strip()
+        content = f.read().strip()
     
-    # Replace 'array(' with 'np.array(' so eval works
-    file_content = file_content.replace("array(", "np.array(")
+    # Split out the separate sets in the text file
+    raw_sets = re.split(r'\]\s*\[', content)
+    raw_sets = [s.strip('[]') for s in raw_sets]
     
-    # Evaluate with numpy available
-    weekly_data = eval(file_content, {"np": np})
+    # Parse each set into lists of numpy arrays
+    weekly_sets = []
+    for s in raw_sets:
+        arrays_raw = re.findall(r'array\((.*?)\)', s, re.DOTALL)
+        instance_set = [np.array(eval(a)) for a in arrays_raw]  # only small eval slices
+        weekly_sets.append(instance_set)
     
     # Pick this function's update from each week
-    func_weekly_data = [np.array(week_update[functionNo - 1]) for week_update in weekly_data]
+    func_weekly_data = [week_update[functionNo - 1] for week_update in weekly_sets if len(week_update) >= functionNo]
     
-    # Combine
+    # Combine initial inputs with weekly updates
     combined_inputs = initial_inputs + func_weekly_data
-    return combined_inputs
     
+    return combined_inputs
 def get_weekly_outputs(functionNo, weekNo):
     """
     Combine initial outputs from the original data with the weekly update for a given week.
