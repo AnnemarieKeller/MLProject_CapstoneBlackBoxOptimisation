@@ -122,34 +122,68 @@ def get_weekly_inputs(functionNo, weekNo):
     
     return combined_inputs
 def get_weekly_outputs(functionNo, weekNo):
+    """
+    Combine initial outputs from the original data with the weekly update for a given week.
+
+    Handles both old and new file formats:
+    - Old: each line contains outputs for all functions.
+    - New: each line contains outputs for one function.
+
+    Parameters:
+    - functionNo: int
+    - weekNo: int
+
+    Returns:
+    - list of floats: combined outputs
+    """
     base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
-    
-    # Load initial outputs
+
+    # --- Load initial outputs ---
     initial_file = os.path.join(base_func_folder, "initial_outputs.npy")
-    initial_outputs = list(np.load(initial_file, allow_pickle=True))
+    if not os.path.exists(initial_file):
+        raise FileNotFoundError(f"Initial outputs not found: {initial_file}")
     
-    # Load weekly outputs
+    initial_outputs = []
+    raw_initial = np.load(initial_file, allow_pickle=True)
+    
+    # Convert each element to float (handle scalars or arrays)
+    for x in raw_initial:
+        if isinstance(x, np.ndarray) or isinstance(x, list):
+            initial_outputs.append([float(v) for v in x])
+        else:
+            initial_outputs.append(float(x))
+
+    # --- Load weekly outputs ---
     weekly_file = os.path.join(updates_folder, "outputs.txt")
+    if not os.path.exists(weekly_file):
+        raise FileNotFoundError(f"Weekly outputs not found: {weekly_file}")
+
     func_weekly_outputs = []
 
     with open(weekly_file, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            # Remove np.float64 wrapper
-            cleaned = line.replace('np.float64(', '').replace(')', '')
-            # Convert to list of floats
-            values = ast.literal_eval(cleaned)  # now values is a flat list
-            # Pick only this function's output
-            if functionNo <= len(values):
-                func_weekly_outputs.append(values[functionNo - 1])
-            else:
-                raise IndexError(f"Week {weekNo} output line has only {len(values)} values, but functionNo={functionNo}")
+        lines = [line.strip() for line in f if line.strip()]
 
-    # Combine initial and weekly outputs
+    # Decide if old or new format
+    first_line = lines[0]
+    if first_line.startswith('[') and 'np.float64' in first_line:
+        # New format: each line = one function
+        if functionNo > len(lines):
+            raise IndexError(f"Function {functionNo} not found in weekly outputs")
+        line_for_function = lines[functionNo - 1]
+        cleaned = line_for_function.replace('np.float64(', '').replace(')', '')
+        func_weekly_outputs.extend(ast.literal_eval(f"[{cleaned}]"))
+    else:
+        # Old format: one line contains all functions
+        for line in lines:
+            cleaned = line.replace('np.float64(', '').replace(')', '')
+            values = ast.literal_eval(f"[{cleaned}]")
+            func_weekly_outputs.append(values[functionNo - 1])
+
+    # Combine initial + weekly outputs
     combined_outputs = initial_outputs + func_weekly_outputs
+
     return combined_outputs
+
 
 
