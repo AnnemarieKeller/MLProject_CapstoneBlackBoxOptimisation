@@ -131,61 +131,43 @@ def flatten(x):
 
 def get_weekly_outputs(functionNo, weekNo):
     """
-    Combine initial outputs with weekly updates for a given function.
-    Returns a flat list of floats, one per sample.
+    Return initial outputs + weekly updates for a given function.
+    Weekly file: each line = one sample, each sample has 8 function outputs.
     """
-    base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
-    updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
-
     # --- Load initial outputs ---
+    base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
     initial_file = os.path.join(base_func_folder, "initial_outputs.npy")
+
     if not os.path.exists(initial_file):
         raise FileNotFoundError(f"Initial outputs not found: {initial_file}")
-    
-    raw_initial = np.load(initial_file, allow_pickle=True)
 
-    # Flatten initial outputs into scalar floats
-    flat_initial = [float(v) for v in flatten(raw_initial)]
+    raw_initial = np.load(initial_file, allow_pickle=True)
+    flat_initial = [float(v) for v in flatten(raw_initial)]   # 10 values
+
 
     # --- Load weekly outputs ---
+    updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
     weekly_file = os.path.join(updates_folder, "outputs.txt")
+
     if not os.path.exists(weekly_file):
         raise FileNotFoundError(f"Weekly outputs not found: {weekly_file}")
-    
-    with open(weekly_file, 'r') as f:
-        lines = [line.strip() for line in f if line.strip()]
 
     func_weekly_outputs = []
-    first_line = lines[0]
+
+    with open(weekly_file, "r") as f:
+        lines = [line.strip() for line in f if line.strip()]
+
+    # Each line = one sample, each sample has 8 function outputs
+    for line in lines:
+        cleaned = line.replace("np.float64(", "").replace(")", "")
+        values = ast.literal_eval(f"[{cleaned}]")      # list of 8 numbers
+        func_weekly_outputs.append(float(values[functionNo - 1]))
 
 
-    if first_line.startswith('[') and 'np.float64' in first_line:
-        if functionNo > len(lines):
-            raise IndexError(f"Function {functionNo} not found in weekly outputs")
-
-        line_for_function = lines[functionNo - 1]
-
-        # Clean numpy wrappers but keep brackets
-        cleaned = line_for_function.replace('np.float64(', '').replace(')', '')
-
-        # Parse list into Python data
-        parsed = ast.literal_eval(cleaned)
-
-        # Flatten + convert to float
-        func_weekly_outputs = [float(v) for v in flatten(parsed)]
-
-    # -------- OLD FORMAT --------
-    else:
-        # One line contains multiple functions
-        for line in lines:
-            cleaned = line.replace('np.float64(', '').replace(')', '')
-            values = ast.literal_eval(f"[{cleaned}]")
-            func_weekly_outputs.append(float(values[functionNo - 1]))
-
-    # Combine initial + weekly outputs
+    # Combine initial (10) + weekly (N lines)
     combined_outputs = flat_initial + func_weekly_outputs
 
-    # ---- DEBUG PRINTS ----
+    # Debug prints
     print("Initial count:", len(flat_initial))
     print("Weekly count:", len(func_weekly_outputs))
     print("Combined:", len(combined_outputs))
