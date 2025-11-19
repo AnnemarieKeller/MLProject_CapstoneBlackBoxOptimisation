@@ -6,7 +6,7 @@ from accquistions import select_acquisition
 import numpy as np
 # from gpBuilder import *
 from .setup.gpBuilder import build_gp, build_svr
-from .setBoundary import boundary_penalty
+from .setBoundary import apply_boundary_penalty
 import numpy as np
 
 
