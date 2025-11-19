@@ -51,3 +51,41 @@ def acquisition_portfolio(mu, sigma, y_max, iteration):
     ts = acquisition_thompson(mu, sigma)
     portfolio = (ucb + ei + ts) / 3
     return portfolio
+
+
+
+def select_acquisition(acq_name, mu, sigma=None, iteration=None, y_max=None, model_type="GP", **kwargs):
+    """
+    Select acquisition function dynamically.
+    
+    For SVR or other deterministic models, sigma can be None, and acquisition defaults to exploitation.
+    
+    Parameters:
+        acq_name: "UCB", "EI", "PI" (ignored for SVR)
+        mu: predicted mean / prediction
+        sigma: predicted std (optional for SVR)
+        iteration: for UCB
+        y_max: for EI/PI
+        model_type: "GP" or "SVR"
+    """
+    if model_type.upper() == "SVR" or sigma is None:
+        # Deterministic model: exploitation only
+        return mu
+    
+    # GP case
+    acq_name = acq_name.upper()
+    if acq_name == "UCB":
+        if iteration is None:
+            raise ValueError("iteration must be provided for UCB")
+        return acquisition_ucb(mu, sigma, iteration, beta0=kwargs.get("beta0", 10))
+    elif acq_name == "EI":
+        if y_max is None:
+            raise ValueError("y_max must be provided for EI")
+        return acquisition_ei(mu, sigma, y_max, xi=kwargs.get("xi", 0.01))
+    elif acq_name == "PI":
+        if y_max is None:
+            raise ValueError("y_max must be provided for PI")
+        return acquisition_pi(mu, sigma, y_max, eta=kwargs.get("eta", 0.01))
+    else:
+        raise ValueError(f"Unknown acquisition function: {acq_name}")
+
