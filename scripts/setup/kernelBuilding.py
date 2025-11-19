@@ -26,75 +26,75 @@ KERNEL_CLASSES = {
 }
 
 
-def build_kernel_from_config(config, input_dim=None, default_kernel=None):
-  """
-    Build a GP kerne from config  Falls back to default.
+# def build_kernel_from_config(config, input_dim=None, default_kernel=None):
+#   """
+#     Build a GP kerne from config  Falls back to default.
     
-    Parameters:
-        configs : 
-            input fromthe functionconfig file 
-        input_dim : int or None
-            Dimensionality of the input (can be calculated from X_train)
-        default_kernel : kernel object or None
-            Kernel to use if kernel_cls is None
-        kwargs : dict
-            Extra arguments for kernel
-    """
-    # Merge defaults with user settings
-    cfg = {**DEFAULT_KERNEL_SETTINGS, **config}
+#     Parameters:
+#         configs : 
+#             input fromthe functionconfig file 
+#         input_dim : int or None
+#             Dimensionality of the input (can be calculated from X_train)
+#         default_kernel : kernel object or None
+#             Kernel to use if kernel_cls is None
+#         kwargs : dict
+#             Extra arguments for kernel
+#     """
+#     # Merge defaults with user settings
+#     cfg = {**DEFAULT_KERNEL_SETTINGS, **config}
     
-    kernel_type = cfg.get("kernel_type", cfg["class"])
-    kernel_cls = KERNEL_CLASSES.get(kernel_type)
+#     kernel_type = cfg.get("kernel_type", cfg["class"])
+#     kernel_cls = KERNEL_CLASSES.get(kernel_type)
     
-    if kernel_cls is None:
-        print("No kernel class provided, using default kernel instead.")
-        return default_kernel or (C(1.0, (1e-3, 1e3)) * RBF(length_scale=[1.0]*input_dim))
+#     if kernel_cls is None:
+#         print("No kernel class provided, using default kernel instead.")
+#         return default_kernel or (C(1.0, (1e-3, 1e3)) * RBF(length_scale=[1.0]*input_dim))
     
-    # Determine input_dim if not explicitly given
-    if input_dim is None:
-        input_dim = cfg.get("dim", 1)
+#     # Determine input_dim if not explicitly given
+#     if input_dim is None:
+#         input_dim = cfg.get("dim", 1)
 
-    # Build kernel depending on type
-    if kernel_type in ["Matern", "RBF", "ExpSineSquared", "RationalQuadratic"]:
-        length_scale = cfg.get("length_scale", [1.0]*input_dim)
-        if isinstance(length_scale, (float, int)):
-            length_scale = [length_scale]*input_dim
+#     # Build kernel depending on type
+#     if kernel_type in ["Matern", "RBF", "ExpSineSquared", "RationalQuadratic"]:
+#         length_scale = cfg.get("length_scale", [1.0]*input_dim)
+#         if isinstance(length_scale, (float, int)):
+#             length_scale = [length_scale]*input_dim
 
-        if kernel_type == "Matern":
-            kernel = kernel_cls(length_scale=length_scale,
-                                length_scale_bounds=cfg.get("length_scale_bounds", (1e-2, 1e2)),
-                                nu=cfg.get("nu", 2.5))
-        elif kernel_type == "RBF":
-            kernel = kernel_cls(length_scale=length_scale,
-                                length_scale_bounds=cfg.get("length_scale_bounds", (1e-2, 1e2)))
-        elif kernel_type == "RationalQuadratic":
-            kernel = kernel_cls(length_scale=length_scale,
-                                alpha=cfg.get("alpha_rq", 1.0))
-        elif kernel_type == "ExpSineSquared":
-            kernel = kernel_cls(length_scale=length_scale,
-                                periodicity=cfg.get("periodicity", 1.0))
+#         if kernel_type == "Matern":
+#             kernel = kernel_cls(length_scale=length_scale,
+#                                 length_scale_bounds=cfg.get("length_scale_bounds", (1e-2, 1e2)),
+#                                 nu=cfg.get("nu", 2.5))
+#         elif kernel_type == "RBF":
+#             kernel = kernel_cls(length_scale=length_scale,
+#                                 length_scale_bounds=cfg.get("length_scale_bounds", (1e-2, 1e2)))
+#         elif kernel_type == "RationalQuadratic":
+#             kernel = kernel_cls(length_scale=length_scale,
+#                                 alpha=cfg.get("alpha_rq", 1.0))
+#         elif kernel_type == "ExpSineSquared":
+#             kernel = kernel_cls(length_scale=length_scale,
+#                                 periodicity=cfg.get("periodicity", 1.0))
 
-    elif kernel_type == "DotProduct":
-        kernel = kernel_cls(sigma_0=cfg.get("sigma_0", 1.0))
+#     elif kernel_type == "DotProduct":
+#         kernel = kernel_cls(sigma_0=cfg.get("sigma_0", 1.0))
 
-    elif kernel_type == "Polynomial":
-        kernel = kernel_cls(degree=cfg.get("degree", 3),
-                            coef0=cfg.get("coef0", 1.0))
-    else:
-        # fallback
-        kernel = RBF(length_scale=[1.0]*input_dim)
+#     elif kernel_type == "Polynomial":
+#         kernel = kernel_cls(degree=cfg.get("degree", 3),
+#                             coef0=cfg.get("coef0", 1.0))
+#     else:
+#         # fallback
+#         kernel = RBF(length_scale=[1.0]*input_dim)
     
-    # Optionally add white noise
-    if cfg.get("add_white", True):
-        kernel += WhiteKernel(
-            noise_level=cfg.get("white_noise", 1e-6),
-            noise_level_bounds=cfg.get("white_bounds", (1e-9, 1e-1))
-        )
+#     # Optionally add white noise
+#     if cfg.get("add_white", True):
+#         kernel += WhiteKernel(
+#             noise_level=cfg.get("white_noise", 1e-6),
+#             noise_level_bounds=cfg.get("white_bounds", (1e-9, 1e-1))
+#         )
     
-    # Optionally scale by ConstantKernel
-    kernel *= C(cfg.get("C", 1.0), cfg.get("C_bounds", (1e-3, 1e3)))
+#     # Optionally scale by ConstantKernel
+#     kernel *= C(cfg.get("C", 1.0), cfg.get("C_bounds", (1e-3, 1e3)))
     
-    return kernel
+#     return kernel
 
 
 def create_kernel_from_config(config, input_dim=None):
