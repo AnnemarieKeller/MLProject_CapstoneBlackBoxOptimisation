@@ -7,6 +7,7 @@ FUNCTION_CONFIG = {
         "length_scale_bounds": (1e-2, 1e2),
         "C_bounds": (1e-3, 1e3),
         "alpha": 1e-6,
+        "nu": 2.5,
         "normalize_y": True,
         "n_restarts_optimizer": 10,
         "boundary_penalty": True
@@ -19,6 +20,7 @@ FUNCTION_CONFIG = {
         "length_scale_bounds": (1e-2, 1e2),
         "C_bounds": (1e-3, 1e3),
         "alpha": 1e-3,
+        "nu": 2.5,
         "normalize_y": True,
         "n_restarts_optimizer": 10,
         "boundary_penalty": True
@@ -31,6 +33,7 @@ FUNCTION_CONFIG = {
         "length_scale_bounds": (1e-5, 1e8),
         "C_bounds": (1e-5, 1e5),
         "alpha": 1e-6,
+        "nu": 2.5,
         "normalize_y": True,
         "n_restarts_optimizer": 20,
         "boundary_penalty": True
@@ -38,7 +41,7 @@ FUNCTION_CONFIG = {
     4: {  # 4D Warehouse Placement
         "dim": 4,
         "acquisition": "UCB",
-        "kernel_type": "RBF",  # or Polynomial if you want to experiment
+        "kernel_type": "RBF",
         "length_scale": [1.0]*4,
         "length_scale_bounds": (1e-2, 1e2),
         "C_bounds": (1e-3, 1e3),
@@ -49,7 +52,7 @@ FUNCTION_CONFIG = {
     },
     5: {  # 4D Chemical Yield
         "dim": 4,
-        "acquisition": "UCB",  # switched from PI to UCB
+        "acquisition": "UCB",
         "kernel_type": "RBF",
         "length_scale": [1.0]*4,
         "length_scale_bounds": (1e-2, 1e2),
@@ -57,7 +60,7 @@ FUNCTION_CONFIG = {
         "alpha": 1e-3,
         "normalize_y": True,
         "n_restarts_optimizer": 10,
-        "boundary_penalty": False  # optional
+        "boundary_penalty": False
     },
     6: {  # 5D Cake Recipe
         "dim": 5,
@@ -65,8 +68,9 @@ FUNCTION_CONFIG = {
         "kernel_type": "Matern",
         "length_scale": [1.0]*5,
         "length_scale_bounds": (1e-2, 1e2),
-        "C_bounds": (1e-3, 1e4),  # larger upper bound
+        "C_bounds": (1e-3, 1e4),
         "alpha": 1e-6,
+        "nu": 2.5,
         "normalize_y": True,
         "n_restarts_optimizer": 10,
         "boundary_penalty": True
@@ -74,9 +78,9 @@ FUNCTION_CONFIG = {
     7: {  # 6D ML Hyperparameters
         "dim": 6,
         "acquisition": "UCB",
-        "kernel_type": "Matern",
-        "length_scale": [1.0]*6,
-        "length_scale_bounds": (1e-2, 1e2),
+        "kernel_type": "Polynomial",
+        "degree": 3,
+        "coef0": 1.0,
         "C_bounds": (1e-3, 1e4),
         "alpha": 1e-6,
         "normalize_y": True,
@@ -92,7 +96,7 @@ FUNCTION_CONFIG = {
         "C_bounds": (1e-3, 1e4),
         "alpha": 1e-6,
         "normalize_y": True,
-        "n_restarts_optimizer": 5,  # fewer to save time in high dimensions
+        "n_restarts_optimizer": 5,
         "boundary_penalty": True
     }
 }
