@@ -51,9 +51,9 @@ def bbo_loop(X_train, y_train, function_config, acquisition=None, num_iterations
     history = {"X": X_train.copy(), "y": y_train.copy(), "acquisition": []}
     # --- 1. Build model once ---
     if model_type.upper() == "GP":
-       surrogate = build_gp(X_train, y_train, config=function_config,config_override=config_override)
+       surrogate = build_gp(X_train, y_train, function_config,config_override)
     elif model_type.upper() == "SVR":
-       surrogate = build_svr(X_train, y_train, config=function_config,config_override=config_override)
+       surrogate = build_svr(X_train, y_train, function_config,config_override)
     else:
        raise ValueError(f"Unknown surrogate type: {model_type}")
 
