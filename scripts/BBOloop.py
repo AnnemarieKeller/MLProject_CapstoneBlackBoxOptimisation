@@ -1,6 +1,7 @@
 # import accquistionscripts as acq
-import .functionsConfig as funcConfig
-from .acquisitionscripts import select_acquisition
+import functionConfig as funcConfig
+from accquistions import select_acquisition
+
 
 import numpy as np
 # from gpBuilder import *
