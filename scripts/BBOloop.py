@@ -4,7 +4,7 @@ from .acquisitionscripts import select_acquisition
 
 import numpy as np
 # from gpBuilder import *
-from .setup/gpBuilder import build_gp, build_svr
+from .setup.gpBuilder import build_gp, build_svr
 from .setBoundary import boundary_penalty
 import numpy as np
 
