@@ -1,7 +1,7 @@
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.svm import SVR
 from .kernelBuilding import build_kernel_from_config
-from defaultKernelSettings import DEFAULT_KERNEL_SETTINGS
+from .defaultKernelSettings import DEFAULT_KERNEL_SETTINGS
 
 
 def build_gp(config=None, X_train=None, y_train=None, kernel_override=None, use_seed = True, seed= 42):
