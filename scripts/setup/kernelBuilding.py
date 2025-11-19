@@ -202,22 +202,16 @@ def create_kernel(settings, input_dim=None):
     return kern
 
 
-def buildConfiguratonKernel(config = None, input_dim=None, default_kernel=None):
-    """
-    Build a GP kernel from config. Falls back to default if needed.
 
-    Parameters:
-        config : dict or None 
-            Settings from FunctionConfig
-        input_dim : int or None
-            input dimensions
-        default_kernel : kernel object or None
-            Kernel to use if kernel_cls is None
-    """
-  if config is None:
-        print("No config provided, using default kernel.")
-        return default_kernel or (C(1.0, (1e-3, 1e3)) * RBF(length_scale=[1.0]*(input_dim or 1)))
-    cfg = {**DEFAULT_KERNEL_SETTINGS, **config}
+from defaultKernelSettings import DEFAULT_KERNEL_SETTINGS, KERNEL_CLASSES
+
+def build_kernel_from_config(config=None, input_dim=None, default_kernel=None, kernel_override=None):
+    if kernel_override is not None:
+        print("Using provided kernel_override instead of building from config.")
+        return kernel_override
+
+    # Use centralized default if no config provided
+    cfg = {**DEFAULT_KERNEL_SETTINGS, **(config or {})}
 
     kernel_type = cfg.get("kernel_type", cfg["class"])
     kernel_cls = KERNEL_CLASSES.get(kernel_type)
@@ -226,38 +220,34 @@ def buildConfiguratonKernel(config = None, input_dim=None, default_kernel=None):
         input_dim = cfg.get("dim", 1)
 
     if kernel_cls is None:
-        print("No kernel class provided, using default kernel instead.")
-        return default_kernel or (C(1.0, (1e-3, 1e3)) * RBF(length_scale=[1.0]*input_dim))
+        print(f"No kernel class found for type {kernel_type}, using default kernel.")
+        return default_kernel or (C(cfg.get("C", 1.0), cfg.get("C_bounds", (1e-3, 1e3))) *
+                                  RBF(length_scale=[cfg.get("length_scale", 1.0)]*input_dim))
 
-    # Common kwargs for kernels
+    # Build kwargs dynamically
     kwargs = {}
-    # length_scale for applicable kernels
     if kernel_type in ["Matern", "RBF", "RationalQuadratic", "ExpSineSquared"]:
         ls = cfg.get("length_scale", [1.0]*input_dim)
         if isinstance(ls, (int, float)):
             ls = [ls]*input_dim
         kwargs["length_scale"] = ls
 
-    # kernel-specific extra params
-    kernel_extra_params = ["nu", "alpha_rq", "periodicity", "degree", "coef0", "sigma_0"]
-    for param in kernel_extra_params:
+    for param in ["nu", "alpha_rq", "periodicity", "degree", "coef0", "sigma_0"]:
         if param in cfg:
             kwargs[param] = cfg[param]
 
-    # Instantiate kernel
     kernel = kernel_cls(**kwargs)
 
-    # Optionally add white noise
     if cfg.get("add_white", True):
         kernel += WhiteKernel(
             noise_level=cfg.get("white_noise", 1e-6),
             noise_level_bounds=cfg.get("white_bounds", (1e-9, 1e-1))
         )
 
-    # Optionally scale by ConstantKernel
     kernel *= C(cfg.get("C", 1.0), cfg.get("C_bounds", (1e-3, 1e3)))
 
     return kernel
+
 
 
 
