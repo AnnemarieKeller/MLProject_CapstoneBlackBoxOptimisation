@@ -1,5 +1,5 @@
 from sklearn.gaussian_process.kernels import (
-    Matern, RBF, WhiteKernel, ConstantKernel as C, RationalQuadratic, DotProduct, ExpSineSquared, PolynomialKernel
+    Matern, RBF, WhiteKernel, ConstantKernel as C, RationalQuadratic, DotProduct, ExpSineSquared
 )
 import importlib
 
@@ -23,7 +23,7 @@ KERNEL_CLASSES = {
     "RationalQuadratic": RationalQuadratic,
     "DotProduct": DotProduct,
     "ExpSineSquared": ExpSineSquared,
-    "Polynomial": PolynomialKernel
+    "Polynomial": SVR
     # add more without touching kernel creation code
 }
 
@@ -80,7 +80,8 @@ KERNEL_CLASSES = {
 #         kernel = kernel_cls(sigma_0=cfg.get("sigma_0", 1.0))
 
 #     elif kernel_type == "Polynomial":
-#         kernel = kernel_cls(degree=cfg.get("degree", 3),
+#         kernel = kernel_cls( kernel = "poly",
+                                # degree=cfg.get("degree", 3),
 #                             coef0=cfg.get("coef0", 1.0))
 #     else:
 #         # fallback
