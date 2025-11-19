@@ -106,7 +106,7 @@ def create_kernel_from_config(config, input_dim=None):
     kernel_cls = KERNEL_CLASSES.get(cfg["class"])
     if kernel_cls is None:
         print("No kernel class provided, using default kernel instead.")
-        kernel = default_kernel or (C(1.0, (1e-3, 1e3)) * RBF(length_scale=[1.0]*input_dim))")
+        kernel = default_kernel or (C(1.0, (1e-3, 1e3)) * RBF(length_scale=[1.0]*input_dim)))
 
     # Handle length_scale for multi-dimensional inputs
     length_scale = cfg["length_scale"]
