@@ -23,7 +23,6 @@ KERNEL_CLASSES = {
     "RationalQuadratic": RationalQuadratic,
     "DotProduct": DotProduct,
     "ExpSineSquared": ExpSineSquared,
-    "Polynomial": SVR
     # add more without touching kernel creation code
 }
 
@@ -250,6 +249,34 @@ def build_kernel_from_config(config=None, input_dim=None, default_kernel=None, k
     kernel *= C(cfg.get("C", 1.0), cfg.get("C_bounds", (1e-3, 1e3)))
 
     return kernel
+from sklearn.svm import SVR
+
+def build_svrKernel_from_config(config=None, model_override=None):
+    """
+    Build an SVR model from config dictionary.
+    Supports kernels: 'linear', 'rbf', 'poly', 'sigmoid'.
+    """
+    if model_override is not None:
+        return model_override
+
+    cfg = config or {}
+    kernel_type = cfg.get("kernel_type", "rbf")  # default RBF
+    degree = cfg.get("degree", 3)
+    coef0 = cfg.get("coef0", 1)
+    C_val = cfg.get("C", 1.0)
+    epsilon = cfg.get("epsilon", 0.1)
+    gamma = cfg.get("gamma", "scale")  # 'scale', 'auto', or float
+
+    # Build SVR model
+    if kernel_type.lower() == "poly":
+        svr_model = SVR(kernel="poly", degree=degree, coef0=coef0, C=C_val,
+                        epsilon=epsilon, gamma=gamma)
+    elif kernel_type.lower() in ["rbf", "linear", "sigmoid"]:
+        svr_model = SVR(kernel=kernel_type.lower(), C=C_val, epsilon=epsilon, gamma=gamma)
+    else:
+        raise ValueError(f"Unknown SVR kernel_type: {kernel_type}")
+
+    return svr_model
 
 
 
