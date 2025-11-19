@@ -1,5 +1,4 @@
-from sklearn.gaussian_process.kernels import Matern, RBF, WhiteKernel, RationalQuadratic, DotProduct, ExpSineSquared, Polynomial
-
+from sklearn.gaussian_process.kernels import Matern, RBF, WhiteKernel, RationalQuadratic, DotProduct, ExpSineSquared
 DEFAULT_KERNEL_SETTINGS = {
     "class": "Matern",
     "C": 1.0,
@@ -18,5 +17,5 @@ KERNEL_CLASSES = {
     "RationalQuadratic": RationalQuadratic,
     "DotProduct": DotProduct,
     "ExpSineSquared": ExpSineSquared,
-    "Polynomial": Polynomial
+  
 }
