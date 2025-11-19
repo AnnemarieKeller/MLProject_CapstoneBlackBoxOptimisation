@@ -1,5 +1,5 @@
 from sklearn.gaussian_process import GaussianProcessRegressor
-from kernel_builder import build_kernel_from_config
+from kernelbuilding import build_kernel_from_config
 from defaultKernelSettings import DEFAULT_KERNEL_SETTINGS
 
 
