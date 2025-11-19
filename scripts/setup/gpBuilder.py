@@ -1,6 +1,6 @@
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.svm import SVR
-from kernelBuilding import build_kernel_from_config
+from .kernelBuilding import build_kernel_from_config
 from defaultKernelSettings import DEFAULT_KERNEL_SETTINGS
 
 
