@@ -106,7 +106,7 @@ def create_kernel_from_config(config, input_dim=None):
     kernel_cls = KERNEL_CLASSES.get(cfg["class"])
     if kernel_cls is None:
         print("No kernel class provided, using default kernel instead.")
-        kernel = default_kernel or (C(1.0, (1e-3, 1e3)) * RBF(length_scale=[1.0]*input_dim))
+        kernel = (C(1.0, (1e-3, 1e3)) * RBF(length_scale=[1.0]*input_dim))
 
     # Handle length_scale for multi-dimensional inputs
     length_scale = cfg["length_scale"]
@@ -160,7 +160,7 @@ def build_kernel(kernel_cls=None, input_dim=1, add_white=False, default_kernel=N
 
 def create_kernel(settings, input_dim=None):
     kernel_type = settings["kernel_type"]
-    kernel_class = KERNEL_MAP.get(kernel_type)
+    kernel_class = KERNEL_CLASSES.get(kernel_type)
     if kernel_class is None:
         raise ValueError(f"Unknown kernel type: {kernel_type}")
 
@@ -188,11 +188,11 @@ def create_kernel(settings, input_dim=None):
             length_scale=length_scale,
             periodicity=settings.get("periodicity", 1.0)
         )
-    elif kernel_type == "Polynomial":
-        kern = kernel_class(
-            degree=settings.get("degree", 3),
-            coef0=settings.get("coef0", 1)
-        )
+    # elif kernel_type == "Polynomial":
+    #     kern = kernel_class(
+    #         degree=settings.get("degree", 3),
+    #         coef0=settings.get("coef0", 1)
+    #     )
 
     # Add WhiteKernel if requested
     if settings.get("add_white", True):

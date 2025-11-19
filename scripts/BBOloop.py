@@ -77,7 +77,7 @@ def bbo_loop(X_train, y_train, function_config, acquisition=None, num_iterations
  
         if use_boundary and function_config.get("boundary_penalty", True):
             softness = 0.15 * np.exp(-i / 20)
-            acquisition_values *= boundary_penalty(X_candidates, softness)
+            acquisition_values *= apply_boundary_penalty(X_candidates, softness)
 
         history["acquisition"].append(acquisition_values.copy())
 

@@ -1,6 +1,6 @@
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.svm import SVR
-from .kernelBuilding import build_kernel_from_config
+from .kernelBuilding import build_kernel_from_config,build_svrKernel_from_config
 from .defaultKernelSettings import DEFAULT_KERNEL_SETTINGS
 
 
@@ -37,13 +37,14 @@ def build_gp(config=None, X_train=None, y_train=None, kernel_override=None, use_
 def build_svr(X_train, y_train, config=None, config_override=None):
    
     final_config = {**(config or {}), **(config_override or {})}
+    svr = build_svrKernel_from_config(config, config_override)
 
-    svr = SVR(
-        kernel=final_config.get("svr_kernel", "rbf"),
-        C=final_config.get("C", 1.0),
-        epsilon=final_config.get("epsilon", 0.01),
-        gamma=final_config.get("gamma", "scale")
-    )
+    # svr = SVR(
+    #     kernel=final_config.get("svr_kernel", "rbf"),
+    #     C=final_config.get("C", 1.0),
+    #     epsilon=final_config.get("epsilon", 0.01),
+    #     gamma=final_config.get("gamma", "scale")
+    # )
 
     svr.fit(X_train, y_train)
     return svr
