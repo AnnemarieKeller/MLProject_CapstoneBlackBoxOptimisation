@@ -17,7 +17,7 @@ def build_gp(config=None, X_train=None, y_train=None, kernel_override=None, use_
              kernel=kernel,
              alpha=alpha,
              normalize_y=normalize_y,
-             n_restarts_optimizer=n_restarts_optimizer
+             n_restarts_optimizer=n_restarts_optimizer,
              random_state=seed
         )
     else:
