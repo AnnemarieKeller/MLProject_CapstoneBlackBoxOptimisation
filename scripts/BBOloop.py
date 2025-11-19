@@ -1,11 +1,11 @@
 # import accquistionscripts as acq
-import functionsConfig as funcConfig
-from acquisitionscripts import select_acquisition
+import .functionsConfig as funcConfig
+from .acquisitionscripts import select_acquisition
 
 import numpy as np
 # from gpBuilder import *
-from gpBuilder import build_gp, build_svr
-from setboundary import boundary_penalty
+from .setup/gpBuilder import build_gp, build_svr
+from .setBoundary import boundary_penalty
 import numpy as np
 
 
