@@ -80,37 +80,45 @@ def flatten_outputs(data, function_folders):
 
 def get_weekly_inputs(functionNo, weekNo):
     """
-    Combine initial inputs from the original data with the weekly update for a given week.
-    Returns a list of numpy arrays (one per sample) for the given function.
+    Combine initial inputs with weekly updates for the given function.
+    Supports multi-line array definitions (one sample per block).
     """
     import ast, re, numpy as np, os
 
+    # --- Load initial inputs ---
     base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
-    updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
-    
-    # Load initial inputs
     initial_file = os.path.join(base_func_folder, "initial_inputs.npy")
     initial_inputs = [np.array(x, dtype=float) for x in np.load(initial_file, allow_pickle=True)]
 
-    # Load weekly updates
+    # --- Load weekly file ---
+    updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
     weekly_file = os.path.join(updates_folder, "inputs.txt")
-    with open(weekly_file, "r") as f:
-        lines = [line.strip() for line in f if line.strip()]
 
     func_weekly_data = []
-    for line in lines:
-        # Remove "array(...)" wrappers and parse into Python lists
-        arrays = re.findall(r'array\((.*?)\)', line)
-        arrays = [np.array(ast.literal_eval(a), dtype=float) for a in arrays]
+    block = ""   # will accumulate lines until ] appears
 
-        if functionNo - 1 < len(arrays):
-            func_weekly_data.append(arrays[functionNo - 1])
-        else:
-            # If this line doesn't have enough functions, skip
-            continue
+    with open(weekly_file, "r") as f:
+        for line in f:
+            stripped = line.strip()
+            if not stripped:
+                continue
 
-    combined_inputs = initial_inputs + func_weekly_data
-    return combined_inputs
+            block += stripped
+
+            # full sample collected
+            if stripped.endswith("]"):
+                # extract all array(...) inside the block
+                arrays_raw = re.findall(r'array\((.*?)\)', block)
+                arrays = [np.array(ast.literal_eval(a), dtype=float) for a in arrays_raw]
+
+                if functionNo - 1 < len(arrays):
+                    func_weekly_data.append(arrays[functionNo - 1])
+
+                block = ""  # reset
+
+    # --- Combine ---
+    return initial_inputs + func_weekly_data
+
 
 def flatten(x):
     """Recursively flatten nested lists/arrays."""
