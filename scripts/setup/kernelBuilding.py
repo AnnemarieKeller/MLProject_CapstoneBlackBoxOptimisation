@@ -203,7 +203,7 @@ def create_kernel(settings, input_dim=None):
 
 
 
-from defaultKernelSettings import DEFAULT_KERNEL_SETTINGS, KERNEL_CLASSES
+
 
 def build_kernel_from_config(config=None, input_dim=None, default_kernel=None, kernel_override=None):
     if kernel_override is not None:
