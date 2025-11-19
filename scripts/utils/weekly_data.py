@@ -80,44 +80,45 @@ def flatten_outputs(data, function_folders):
 
 def get_weekly_inputs(functionNo, weekNo):
     """
-    Combine initial inputs with weekly updates for the given function.
-    Supports multi-line array definitions (one sample per block).
+    Load initial inputs and append weekly update inputs.
+    Handles multi-line array blocks safely.
     """
     import ast, re, numpy as np, os
 
-    # --- Load initial inputs ---
+    # Load initial inputs
     base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
     initial_file = os.path.join(base_func_folder, "initial_inputs.npy")
     initial_inputs = [np.array(x, dtype=float) for x in np.load(initial_file, allow_pickle=True)]
 
-    # --- Load weekly file ---
+    # Load weekly data
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
     weekly_file = os.path.join(updates_folder, "inputs.txt")
 
     func_weekly_data = []
-    block = ""   # will accumulate lines until ] appears
+    block = ""
 
     with open(weekly_file, "r") as f:
         for line in f:
-            stripped = line.strip()
-            if not stripped:
+            line = line.strip()
+            if not line:
                 continue
 
-            block += stripped
+            block += line
 
-            # full sample collected
-            if stripped.endswith("]"):
-                # extract all array(...) inside the block
-                arrays_raw = re.findall(r'array\((.*?)\)', block)
+            # block ends when we hit a closing bracket
+            if line.endswith("]"):
+                # extract all array(...) entries in this block
+                arrays_raw = re.findall(r'array\((.*?)\)', block, flags=re.DOTALL)
                 arrays = [np.array(ast.literal_eval(a), dtype=float) for a in arrays_raw]
 
+                # pick the correct function data
                 if functionNo - 1 < len(arrays):
                     func_weekly_data.append(arrays[functionNo - 1])
 
-                block = ""  # reset
+                block = ""
 
-    # --- Combine ---
     return initial_inputs + func_weekly_data
+
 
 
 def flatten(x):
