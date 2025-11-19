@@ -3,6 +3,8 @@ from sklearn.gaussian_process.kernels import (
 )
 import importlib
 
+from .defaultKernelSettings import DEFAULT_KERNEL_SETTINGS, KERNEL_CLASSES
+
 DEFAULT_KERNEL_SETTINGS = {
     "class": "Matern",
     "C": 1.0,
