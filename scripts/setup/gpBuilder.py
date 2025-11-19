@@ -1,6 +1,6 @@
 from sklearn.gaussian_process import GaussianProcessRegressor
 from kernel_builder import build_kernel_from_config
-from default_kernel_config import defaultKernelSettings
+from defaultKernelSettings import DEFAULT_KERNEL_SETTINGS
 
 
 def build_gp(config=None, X_train=None, y_train=None, kernel_override=None):
