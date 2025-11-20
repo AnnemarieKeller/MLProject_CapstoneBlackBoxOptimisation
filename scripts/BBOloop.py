@@ -133,7 +133,7 @@ def bbo_loopWith(X_train, y_train, function_config, acquisition=None, num_iterat
 
    
     if model_type.upper() == "GP":
-       surrogate = build_gpWhiteKernel(function_config,X_train, y_train,config_override)
+       surrogate = build_gpWhiteKernel(X_train, y_train,config_override)
     elif model_type.upper() == "SVR":
        surrogate = build_svr(X_train, y_train, function_config,config_override)
     else:
