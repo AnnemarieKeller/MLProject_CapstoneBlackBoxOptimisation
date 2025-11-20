@@ -16,7 +16,7 @@ FUNCTION_CONFIG = {
     2: {  # 2D Noisy Log-Likelihood
         "dim": 2,
         "acquisition": "UCB",
-        "kernel_type": "Matern",
+        "kernel_type": "RBF",
         "add_white": True,
         "length_scale": [1.0, 1.0],
         "length_scale_bounds": (1e-2, 1e2),
