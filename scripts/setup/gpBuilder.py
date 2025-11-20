@@ -47,8 +47,8 @@ def build_gpWhiteKernel( X_train=None, y_train=None,
     # GP should have alpha = 0 since WhiteKernel handles noise
     alpha = 0.0
 
-    normalize_y = config.get("normalize_y", True) if config else True
-    n_restarts = config.get("n_restarts_optimizer", 5)
+    normalize_y =  True
+    n_restarts = 20
 
     gp = GaussianProcessRegressor(
         kernel=kernel,
