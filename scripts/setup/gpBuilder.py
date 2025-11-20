@@ -33,13 +33,13 @@ def build_gp(config=None, X_train=None, y_train=None, kernel_override=None, use_
         gp.fit(X_train, y_train)
 
     return gp
-def build_gpWhiteKernel( X_train=None, y_train=None,
+def build_gpWhiteKernel(config = None,  X_train=None, y_train=None,
              kernel_override=None, use_seed=True, seed=42):
 
     input_dim = X_train.shape[1] if X_train is not None else None
 
     kernel = build_kernelWithWhiteKernel(
-       
+        config = config,
         input_dim=input_dim,
         kernel_override=kernel_override
     )
