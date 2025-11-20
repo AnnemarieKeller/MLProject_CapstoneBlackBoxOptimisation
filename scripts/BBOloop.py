@@ -336,14 +336,14 @@ def adaptive_bbo_dynamic(X_init, y_init, config, acquisition_list=["EI","UCB","P
     np.random.seed(random_state)
     X_train, X_scaler = scale_data(X_init, scaler_type='minmax')
     y_train, y_scaler = scale_data(np.array(y_init).reshape(-1,1), scaler_type='standard')
-    
+
     input_dim = X_init.shape[1]
 
     history = {"X": X_train.copy(), "y": y_train.copy()}
 
     for i in range(num_iterations):
         # Build/update GP kernel dynamically
-        gp = build_gpWhiteKernel(config, input_dim, X_train, y_train)
+        gp = build_gpWhiteKernel(config, X_train, y_train)
         X_train = scale_data(X_train, scaler = X_scaler)
         y_train = scale_data(y_train, scaler = y_scaler)
 
