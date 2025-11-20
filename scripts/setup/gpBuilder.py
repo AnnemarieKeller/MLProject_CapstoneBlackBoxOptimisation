@@ -103,4 +103,5 @@ def build_dynamic_gp(
     )
 
     gp.fit(X_train, y_train)
+    print("built dynamic ")
     return gp

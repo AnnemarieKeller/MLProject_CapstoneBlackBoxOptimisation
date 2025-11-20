@@ -32,7 +32,7 @@ FUNCTION_CONFIG = {
     3: {  # 3D Drug Combination
         "dim": 3,
         "acquisition": "PI",
-        "kernel_type": "Matern",
+        "kernel_type": "RBF",
         "add_white": True,
         "length_scale": [1.0]*3,
         "length_scale_bounds": (1e-5, 1e8),
@@ -85,7 +85,7 @@ FUNCTION_CONFIG = {
     7: {  # 6D ML Hyperparameters
         "dim": 6,
         "acquisition": "UCB",
-        "kernel_type": "Polynomial",
+        "kernel_type": "Poly",
         "add_white": True,
         "degree": 3,
         "coef0": 1.0,

@@ -301,7 +301,9 @@ def build_kernelWithWhiteKernel(config=None, input_dim=None, kernel_override=Non
         y_std = np.std(y_train)
         decay = np.exp(-iteration / total_iterations)
         noise_init = max(1e-6, 0.1 * y_std)
-        noise_upper = max(1e-3, y_std * decay)
+        # noise_upper = max(1e-3, y_std * decay)
+        # noise_upper = min(noise_upper, 1.0)
+        noise_upper = max(1e-3, np.std(y_train) * np.exp(-iteration/total_iterations))
         noise_bounds = (1e-8, noise_upper)
 
     else:
@@ -347,6 +349,8 @@ def build_kernelWithWhiteKernel(config=None, input_dim=None, kernel_override=Non
     # Add dynamic WhiteKernel
     # ------------------------------------------------------------
     if cfg.get("add_white", True):
+       
+    
         base_kernel += WhiteKernel(
             noise_level=noise_init,
             noise_level_bounds=noise_bounds
