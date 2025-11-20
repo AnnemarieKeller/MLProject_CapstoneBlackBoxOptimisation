@@ -344,9 +344,7 @@ def adaptive_bbo_dynamic(X_init, y_init, config, acquisition_list=["EI","UCB","P
     for i in range(num_iterations):
         # Build/update GP kernel dynamically
         gp = build_gpWhiteKernel(config, X_train, y_train)
-        X_train = scale_data(X_train, scaler = X_scaler)
-        y_train = scale_data(y_train, scaler = y_scaler)
-
+        
         gp.fit(X_train, y_train)
 
         # Generate candidates
@@ -388,6 +386,10 @@ def adaptive_bbo_dynamic(X_init, y_init, config, acquisition_list=["EI","UCB","P
                 if acq_value > best_value:
                     best_value = acq_value
                     best_point = candidate
+
+            X_train, X_scaler = scale_data(X_train, scaler = X_scaler)
+            y_train, y_scaler = scale_data(y_train, scaler = y_scaler)
+        
 
             best_per_acq[acq_name] = (best_point, best_value)
 
