@@ -80,3 +80,27 @@ def build_svr(X_train, y_train, config=None, config_override=None):
     return svr
 
 
+def build_dynamic_gp(
+    X_train, y_train, config=None, kernel_override=None,
+    iteration=0, total_iterations=30, seed=42
+):
+
+    kernel = build_dynamic_kernel(
+        X_train=X_train,
+        y_train=y_train,
+        config=config,
+        kernel_override=kernel_override,
+        iteration=iteration,
+        total_iterations=total_iterations
+    )
+
+    gp = GaussianProcessRegressor(
+        kernel=kernel,
+        alpha=0.0,
+        normalize_y=True,
+        n_restarts_optimizer=config.get("n_restarts_optimizer", 10),
+        random_state=seed
+    )
+
+    gp.fit(X_train, y_train)
+    return gp

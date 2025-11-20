@@ -132,22 +132,16 @@ def bbo_loopWith(X_train, y_train, function_config, acquisition=None, num_iterat
     }
 
    
-    if model_type.upper() == "GP":
-       surrogate = build_gpWhiteKernel(function_config, X_train, y_train,config_override)
-    elif model_type.upper() == "SVR":
-       surrogate = build_svr(X_train, y_train, function_config,config_override)
-    else:
-       raise ValueError(f"Unknown surrogate type: {model_type}")
-
+  
     for i in range(num_iterations):
 
     # --- Build GP and optimize kernel dynamically ---
-        if model_type.upper() == "GP":
-            surrogate = build_gpWhiteKernel(
-            function_config,
-            X_train=X_train,
-            y_train=y_train
-        )
+        surrogate = build_dynamic_gp(
+                    X_train, y_train,
+                    config=function_config,
+                    iteration=i,
+                    total_iterations=num_iterations
+                                     )
 
     # --- Fit GP to current data ---
         surrogate.fit(X_train, y_train)

@@ -316,3 +316,111 @@ def build_kernelWithWhiteKernel(config=None, input_dim=None, kernel_override=Non
 
 
 
+from sklearn.gaussian_process.kernels import RBF, Matern, RationalQuadratic, WhiteKernel
+import numpy as np
+from scipy.spatial.distance import pdist
+from sklearn.gaussian_process import GaussianProcessRegressor
+
+
+def build_dynamic_kernel(
+    X_train=None, 
+    y_train=None, 
+    config=None, 
+    kernel_override=None,
+    iteration=0,
+    total_iterations=30
+):
+    """
+    Fully dynamic kernel builder with automatic:
+        - length_scale initialization
+        - length_scale bounds from X geometry
+        - noise level initialization from y variability
+        - noise bounds that shrink over time
+    """
+
+    # --- override if explicitly given ---
+    if kernel_override is not None:
+        return kernel_override
+    
+    cfg = config or {}
+
+    # Determine dimensions
+    dim = X_train.shape[1] if X_train is not None else cfg.get("dim", 1)
+
+    # If no data yet, fall back to defaults
+    if X_train is None or y_train is None or len(X_train) < 2:
+        base_kernel = RBF(length_scale=np.ones(dim), length_scale_bounds=(1e-2, 1e2))
+        white = WhiteKernel(noise_level=1e-3, noise_level_bounds=(1e-6, 1e-1))
+        return base_kernel + white
+
+    # =====================================================
+    # 1️⃣ Dynamic noise estimation from y
+    # =====================================================
+    y_std = np.std(y_train)
+
+    # Initial noise level ~ 10% of signal std
+    noise_init = max(1e-6, 0.1 * y_std)
+
+    # Shrink upper noise bound over time
+    decay = np.exp(-iteration / total_iterations)
+    noise_upper = max(1e-3, y_std * decay)
+
+    noise_bounds = (1e-8, noise_upper)
+
+    # =====================================================
+    # 2️⃣ Dynamic length-scale estimation from geometry of X
+    # =====================================================
+
+    # average distance between points
+    avg_dist = np.mean(pdist(X_train)) if len(X_train) > 2 else 1.0
+
+    # initial length-scale is around this distance
+    length_init = np.ones(dim) * avg_dist  
+
+    # bounds scale with geometry
+    length_bounds = (avg_dist / 100, avg_dist * 10)
+
+    # optionally allow override
+    if "length_bounds" in cfg:
+        length_bounds = cfg["length_bounds"]
+
+    # =====================================================
+    # 3️⃣ Choose kernel class
+    # =====================================================
+    kernel_type = cfg.get("kernel_type", "RBF")
+
+    if kernel_type == "RBF":
+        base_kernel = RBF(length_scale=length_init, length_scale_bounds=length_bounds)
+
+    elif kernel_type == "Matern":
+        nu = cfg.get("nu", 2.5)
+        base_kernel = Matern(
+            length_scale=length_init,
+            length_scale_bounds=length_bounds,
+            nu=nu
+        )
+
+    elif kernel_type == "RationalQuadratic":
+        base_kernel = RationalQuadratic(
+            length_scale=length_init,
+            length_scale_bounds=length_bounds,
+            alpha=cfg.get("alpha_rq", 1.0)
+        )
+
+    else:  
+        print(f"Unknown kernel type {kernel_type}, using RBF.")
+        base_kernel = RBF(length_scale=length_init, length_scale_bounds=length_bounds)
+
+    # =====================================================
+    # 4️⃣ Add dynamic WhiteKernel
+    # =====================================================
+    white = WhiteKernel(
+        noise_level=noise_init,
+        noise_level_bounds=noise_bounds
+    )
+
+    return base_kernel + white
+
+
+
+
