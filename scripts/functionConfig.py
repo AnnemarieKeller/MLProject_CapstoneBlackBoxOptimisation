@@ -18,6 +18,8 @@ FUNCTION_CONFIG = {
         "acquisition": "UCB",
         "kernel_type": "RBF",
         "add_white": True,
+        "white_noise": 1e-3,
+        "white_bounds": (1e-5, 1e1),
         "length_scale": [1.0, 1.0],
         "length_scale_bounds": (1e-2, 1e2),
         "C_bounds": (1e-3, 1e3),

@@ -293,7 +293,7 @@ def build_kernelWithWhiteKernel(config=None, input_dim=None, kernel_override=Non
 
     # Handle length_scale for kernels that use it
     if kernel_type in ["RBF", "Matern", "RationalQuadratic", "ExpSineSquared"]:
-        ls = cfg.get("length_scale", 1.0)
+        ls = input_dim
         kwargs["length_scale"] = ls
         kwargs["length_scale_bounds"] = cfg.get("length_bounds", (1e-2, 1e2))
 
