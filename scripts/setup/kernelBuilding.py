@@ -278,7 +278,41 @@ def build_svrKernel_from_config(config=None, model_override=None):
 
     return svr_model
 
+def build_kernelWithWhiteKernel(config=None, input_dim=None, kernel_override=None):
+    if kernel_override is not None:
+        print("Using provided kernel_override instead of building from config.")
+        return kernel_override
 
+    cfg = {**DEFAULT_KERNEL_SETTINGS, **(config or {})}
+
+    kernel_type = cfg.get("kernel_type", cfg.get("class", "RBF"))
+    kernel_cls = KERNEL_CLASSES.get(kernel_type, RBF)
+
+    # ----- Build main kernel -----
+    kwargs = {}
+
+    # Handle length_scale for kernels that use it
+    if kernel_type in ["RBF", "Matern", "RationalQuadratic", "ExpSineSquared"]:
+        ls = cfg.get("length_scale", 1.0)
+        kwargs["length_scale"] = ls
+        kwargs["length_scale_bounds"] = cfg.get("length_bounds", (1e-2, 1e2))
+
+    # Add specific kernel parameters if present
+    for param in ["nu", "alpha", "periodicity"]:
+        if param in cfg:
+            kwargs[param] = cfg[param]
+
+    # Instantiate kernel
+    kernel = kernel_cls(**kwargs)
+
+    # ----- Add WhiteKernel if requested -----
+    if cfg.get("add_white", True):
+        kernel += WhiteKernel(
+            noise_level=cfg.get("white_noise", 1e-3),
+            noise_level_bounds=cfg.get("white_bounds", (1e-5, 1e1)),
+        )
+
+    return kernel
 
 
 

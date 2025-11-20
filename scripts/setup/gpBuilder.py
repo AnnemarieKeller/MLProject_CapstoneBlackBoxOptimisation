@@ -1,11 +1,12 @@
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.svm import SVR
-from .kernelBuilding import build_kernel_from_config,build_svrKernel_from_config
+from .kernelBuilding import *
 from .defaultKernelSettings import DEFAULT_KERNEL_SETTINGS
 
 
 def build_gp(config=None, X_train=None, y_train=None, kernel_override=None, use_seed = True, seed= 42):
  
+    print(X_train.shape[1])
     input_dim = X_train.shape[1] if X_train is not None else None
     kernel = build_kernel_from_config(config=config, input_dim=input_dim, kernel_override=kernel_override)
 
@@ -26,6 +27,35 @@ def build_gp(config=None, X_train=None, y_train=None, kernel_override=None, use_
             alpha=alpha,
             normalize_y=normalize_y,
             n_restarts_optimizer=n_restarts_optimizer
+    )
+
+    if X_train is not None and y_train is not None:
+        gp.fit(X_train, y_train)
+
+    return gp
+def build_gpWhiteKernel( X_train=None, y_train=None,
+             kernel_override=None, use_seed=True, seed=42):
+
+    input_dim = X_train.shape[1] if X_train is not None else None
+
+    kernel = build_kernelWithWhiteKernel(
+       
+        input_dim=input_dim,
+        kernel_override=kernel_override
+    )
+
+    # GP should have alpha = 0 since WhiteKernel handles noise
+    alpha = 0.0
+
+    normalize_y = config.get("normalize_y", True) if config else True
+    n_restarts = config.get("n_restarts_optimizer", 5)
+
+    gp = GaussianProcessRegressor(
+        kernel=kernel,
+        alpha=alpha,
+        normalize_y=normalize_y,
+        n_restarts_optimizer=n_restarts,
+        random_state=seed if use_seed else None
     )
 
     if X_train is not None and y_train is not None:

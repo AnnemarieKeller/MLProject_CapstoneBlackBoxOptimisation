@@ -5,7 +5,7 @@ from accquistions import select_acquisition
 
 import numpy as np
 # from gpBuilder import *
-from .setup.gpBuilder import build_gp, build_svr
+from .setup.gpBuilder import *
 from .setBoundary import apply_boundary_penalty
 import numpy as np
 
@@ -49,7 +49,7 @@ def bbo_loop(X_train, y_train, function_config, acquisition=None, num_iterations
 
     # Track all sampled points for debugging
     history = {"X": X_train.copy(), "y": y_train.copy(), "acquisition": []}
-    # --- 1. Build model once ---
+   
     if model_type.upper() == "GP":
        surrogate = build_gp(function_config,X_train, y_train,config_override)
     elif model_type.upper() == "SVR":
@@ -105,4 +105,87 @@ def bbo_loop(X_train, y_train, function_config, acquisition=None, num_iterations
     best_input = X_train[best_idx]
     best_output = y_train[best_idx]
 
+    return best_input, best_output, history
+def bbo_loopWith(X_train, y_train, function_config, acquisition=None, num_iterations=30,
+             model_type="GP", config_override=None, use_boundary=True,
+             n_candidates=500, candidate_method="random", verbose=True):
+    """
+    Modular black-box optimization loop using GP or SVR surrogate.
+
+    Returns:
+        best_input, best_output, history (dict with all sampled points)
+    """
+    X_train = X_train.copy()
+    y_train = y_train.copy()
+    dim = function_config.get("dim", X_train.shape[1])
+
+    acquisition_name = acquisition or function_config.get("acquisition", "UCB")
+
+    # Track all sampled points for debugging
+    history = {
+        "X": X_train.copy(),
+        "y": y_train.copy(),
+        "best_y": [np.max(y_train)],
+        "acquisition": [],
+        "iter": list(range(len(y_train))),
+        "kernel_": []
+    }
+
+   
+    if model_type.upper() == "GP":
+       surrogate = build_gpWhiteKernel(function_config,X_train, y_train,config_override)
+    elif model_type.upper() == "SVR":
+       surrogate = build_svr(X_train, y_train, function_config,config_override)
+    else:
+       raise ValueError(f"Unknown surrogate type: {model_type}")
+
+    for i in range(num_iterations):
+
+    # --- Build GP and optimize kernel dynamically ---
+        if model_type.upper() == "GP":
+            surrogate = build_gpWhiteKernel(
+            X_train=X_train,
+            y_train=y_train
+        )
+
+    # --- Fit GP to current data ---
+        surrogate.fit(X_train, y_train)
+        history["kernel_"].append(str(surrogate.kernel_))
+
+    # --- Predict for candidates ---
+        X_candidates = generate_candidates(dim, n_candidates, method=candidate_method)
+        mu, sigma = surrogate.predict(X_candidates, return_std=True)
+
+    # --- Dynamic acquisition function (exploration/exploitation) ---
+        initial_kappa = 3.0
+        final_kappa = 0.1
+        kappa = initial_kappa * np.exp(-i / num_iterations) + final_kappa
+        acquisition_values = select_acquisition(acquisition_name, mu, sigma,
+                                            iteration=i, y_max=np.max(y_train), kappa=kappa)
+
+    # --- Boundary penalty etc ---
+        if use_boundary:
+            softness = 0.15 * np.exp(-i / 20)
+            acquisition_values *= apply_boundary_penalty(X_candidates, softness)
+
+    # --- Choose next point ---
+        next_idx = np.argmax(acquisition_values)
+        next_point = X_candidates[next_idx]
+        y_next = mu[next_idx]
+
+    # --- Update training data ---
+        X_train = np.vstack([X_train, next_point])
+        y_train = np.append(y_train, y_next)
+
+    # --- Return best found ---
+        best_idx = np.argmax(y_train)
+        best_input = X_train[best_idx]
+        best_output = y_train[best_idx]
+        history["X"] = np.vstack([history["X"], next_point])
+        history["y"] = np.append(history["y"], y_next)
+
+        history["best_y"].append(np.max(y_train))
+        history["iter"].append(len(history["iter"]))
+
+        print(f"Iter {i+1}: Optimized kernel = {surrogate.kernel_}") 
     return best_input, best_output, history
