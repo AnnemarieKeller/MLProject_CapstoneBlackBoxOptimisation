@@ -278,41 +278,82 @@ def build_svrKernel_from_config(config=None, model_override=None):
 
     return svr_model
 
-def build_kernelWithWhiteKernel(config=None, input_dim=None, kernel_override=None):
+def build_kernelWithWhiteKernel(config=None, input_dim=None, kernel_override=None,
+                                X_train=None, y_train=None, iteration=0, total_iterations=30):
+
     if kernel_override is not None:
-        print("Using provided kernel_override instead of building from config.")
         return kernel_override
 
     cfg = {**DEFAULT_KERNEL_SETTINGS, **(config or {})}
-
     kernel_type = cfg.get("kernel_type", cfg.get("class", "RBF"))
-    kernel_cls = KERNEL_CLASSES.get(kernel_type, RBF)
 
-    # ----- Build main kernel -----
-    kwargs = {}
+    # --- Compute dynamic stats if data exists ---
+    if X_train is not None and len(X_train) > 1:
 
-    # Handle length_scale for kernels that use it
-    if kernel_type in ["RBF", "Matern", "RationalQuadratic", "ExpSineSquared"]:
-        ls = input_dim
-        kwargs["length_scale"] = ls
-        kwargs["length_scale_bounds"] = cfg.get("length_bounds", (1e-2, 1e2))
+        # Average pairwise distance between points
+        from scipy.spatial.distance import pdist
+        avg_dist = np.mean(pdist(X_train)) if len(X_train) > 2 else 1.0
 
-    # Add specific kernel parameters if present
-    for param in ["nu", "alpha", "periodicity"]:
-        if param in cfg:
-            kwargs[param] = cfg[param]
+        length_init = np.ones(input_dim) * avg_dist
+        length_bounds = (avg_dist / 100, avg_dist * 10)
 
-    # Instantiate kernel
-    kernel = kernel_cls(**kwargs)
+        # Dynamic noise estimation
+        y_std = np.std(y_train)
+        decay = np.exp(-iteration / total_iterations)
+        noise_init = max(1e-6, 0.1 * y_std)
+        noise_upper = max(1e-3, y_std * decay)
+        noise_bounds = (1e-8, noise_upper)
 
-    # ----- Add WhiteKernel if requested -----
-    if cfg.get("add_white", True):
-        kernel += WhiteKernel(
-            noise_level=cfg.get("white_noise", 1e-3),
-            noise_level_bounds=cfg.get("white_bounds", (1e-5, 1e1)),
+    else:
+        # Fallback early in BO loop
+        length_init = np.ones(input_dim)
+        length_bounds = (1e-2, 1e2)
+        noise_init = 1e-3
+        noise_bounds = (1e-6, 1e-1)
+
+    # ------------------------------------------------------------
+    # Build kernel safely, passing only valid parameters
+    # ------------------------------------------------------------
+    if kernel_type == "RBF":
+        base_kernel = RBF(length_scale=length_init,
+                          length_scale_bounds=length_bounds)
+
+    elif kernel_type == "Matern":
+        base_kernel = Matern(
+            length_scale=length_init,
+            length_scale_bounds=length_bounds,
+            nu=cfg.get("nu", 2.5)
         )
 
-    return kernel
+    elif kernel_type == "RationalQuadratic":
+        base_kernel = RationalQuadratic(
+            length_scale=length_init,
+            length_scale_bounds=length_bounds,
+            alpha=cfg.get("alpha", 1.0)
+        )
+
+    elif kernel_type == "ExpSineSquared":
+        base_kernel = ExpSineSquared(
+            length_scale=length_init,
+            periodicity=cfg.get("periodicity", 1.0)
+        )
+
+    else:
+        print(f"Unknown kernel {kernel_type}, defaulting to RBF")
+        base_kernel = RBF(length_scale=length_init,
+                          length_scale_bounds=length_bounds)
+
+    # ------------------------------------------------------------
+    # Add dynamic WhiteKernel
+    # ------------------------------------------------------------
+    if cfg.get("add_white", True):
+        base_kernel += WhiteKernel(
+            noise_level=noise_init,
+            noise_level_bounds=noise_bounds
+        )
+
+    return base_kernel
+
 
 
 
