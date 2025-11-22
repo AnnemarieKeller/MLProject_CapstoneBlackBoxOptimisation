@@ -2,8 +2,11 @@ from scipy import stats
 import numpy as np
 
 
+def acquisition_ucb_Kappa(mu, sigma, iteration, kappa):
+    return mu + kappa * sigma
+
 def acquisition_ucb(mu, sigma, iteration, beta0=10):
-    beta = beta0 * np.exp(-iteration / 13) + 1.0
+    beta = beta0 * np.exp(-iteration / 13) + 1.0 
     return mu + beta * sigma
 
 def acquisition_pi(mu, sigma, y_max, eta=0.01):
@@ -14,8 +17,14 @@ def acquisition_ei(mu, sigma, y_max, xi=0.01):
     with np.errstate(divide='ignore'):
         z = (mu - y_max - xi) / (sigma + 1e-12)
         ei = (mu - y_max - xi) * stats.norm.cdf(z) + sigma * stats.norm.pdf(z)
-    ei[sigma == 0.0] = 0.0
+    if np.isscalar(ei):
+        if sigma == 0.0:
+            ei = 0.0
+    else:
+        ei[sigma == 0.0] = 0.0
+
     return ei
+
 
 
 def acquisition_thompson(mu, sigma):
@@ -88,4 +97,34 @@ def select_acquisition(acq_name, mu, sigma=None, iteration=None, y_max=None, mod
         return acquisition_pi(mu, sigma, y_max, eta=kwargs.get("eta", 0.01))
     else:
         raise ValueError(f"Unknown acquisition function: {acq_name}")
+def modified_acquisition(X, gp, acq_name="UCB", iteration=None, y_max=None, model_type="GP", boost_middle=True, middle_bounds=(0.3,0.7), boost_factor=2.0, **kwargs):
+    """
+    Compute acquisition values with optional middle-region boosting.
 
+    Parameters:
+        X: candidate points, shape (n_points, n_dims)
+        gp: trained GP model
+        acq_name: which acquisition function to use ("UCB", "EI", "PI", "THOMPSON", "KG", "ENTROPY", "PORTFOLIO")
+        iteration: required for UCB
+        y_max: required for EI/PI/KG
+        model_type: "GP" or "SVR"
+        boost_middle: whether to boost middle points
+        middle_bounds: tuple (low, high) defining the middle region in all dimensions
+        boost_factor: multiplier for acquisition values in the middle
+        **kwargs: extra args for acquisition functions (xi, eta, beta0, n_samples)
+    """
+    # Compute the standard acquisition values using your existing wrapper
+    acq = select_acquisition(acq_name, mu=gp.predict(X, return_std=False)[0],
+                             sigma=gp.predict(X, return_std=True)[1] if model_type=="GP" else None,
+                             iteration=iteration,
+                             y_max=y_max,
+                             model_type=model_type,
+                             **kwargs)
+
+    if boost_middle:
+        low, high = middle_bounds
+        # Create mask for points where all dimensions are inside the middle box
+        middle_mask = np.all((X >= low) & (X <= high), axis=1)
+        acq[middle_mask] *= boost_factor
+
+    return acq

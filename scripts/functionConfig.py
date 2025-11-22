@@ -4,7 +4,7 @@ FUNCTION_CONFIG = {
         "acquisition": "UCB",
         "kernel_type": "Matern",
         "add_white": True,
-        "length_scale": [1.0, 1.0],
+        "length_scale": [0.2, 0.2],
         "length_scale_bounds": (1e-2, 1e2),
         "C_bounds": (1e-3, 1e3),
         "alpha": 1e-6,
@@ -46,7 +46,7 @@ FUNCTION_CONFIG = {
     4: {  # 4D Warehouse Placement
         "dim": 4,
         "acquisition": "UCB",
-        "kernel_type": "RBF",
+        "kernel_type": "Matern",
         "add_white": True,
         "length_scale": [1.0]*4,
         "length_scale_bounds": (1e-2, 1e2),

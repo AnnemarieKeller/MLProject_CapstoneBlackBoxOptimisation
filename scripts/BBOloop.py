@@ -8,29 +8,13 @@ import numpy as np
 from .setup.gpBuilder import *
 from .setBoundary import apply_boundary_penalty
 import numpy as np
+from .candidateGeneration import *
+
+from sklearn.ensemble import RandomForestRegressor
 
 
-def generate_candidates(input_dim, n_candidates=500, method="random"):
- 
-    if method == "random":
-        return np.random.rand(n_candidates, input_dim)
-    elif method == "grid":
-        # only works for small dim <= 3
-        lin = [np.linspace(0,1,int(np.ceil(n_candidates**(1/input_dim)))) for _ in range(input_dim)]
-        mesh = np.meshgrid(*lin)
-        X = np.column_stack([m.ravel() for m in mesh])
-        return X
-    elif method == "sobol":
-        try:
-            from scipy.stats import qmc
-            sampler = qmc.Sobol(d=input_dim, scramble=True)
-            X = sampler.random_base2(m=int(np.log2(n_candidates)))
-            return X
-        except ImportError:
-            print("Sobol requires scipy >= 1.7. Falling back to random.")
-            return np.random.rand(n_candidates, input_dim)
-    else:
-        raise ValueError(f"Unknown candidate generation method: {method}")
+
+
 
 def bbo_loop(X_train, y_train, function_config, acquisition=None, num_iterations=30,
              model_type="GP", config_override=None, use_boundary=True,
@@ -61,7 +45,8 @@ def bbo_loop(X_train, y_train, function_config, acquisition=None, num_iterations
     
         surrogate.fit(X_train, y_train)
 
-        X_candidates = generate_candidates(dim, n_candidates, method=candidate_method)
+        # X_candidates = generate_candidates(dim, n_candidates, method=candidate_method)
+        X_candidates = generate_candidates(dim, n_candidates, determine_candidate_generation_method(dim) )
 
        
         if model_type.upper() == "GP":
@@ -148,7 +133,8 @@ def bbo_loopWith(X_train, y_train, function_config, acquisition=None, num_iterat
         history["kernel_"].append(str(surrogate.kernel_))
 
     # --- Predict for candidates ---
-        X_candidates = generate_candidates(dim, n_candidates, method=candidate_method)
+        # X_candidates = generate_candidates(dim, n_candidates, method=candidate_method)
+        X_candidates = generate_candidates(dim,n_candidates, determine_candidate_generation_method(dim) )
         mu, sigma = surrogate.predict(X_candidates, return_std=True)
 
     # --- Dynamic acquisition function (exploration/exploitation) ---
@@ -212,7 +198,8 @@ def function_free_bbo_dynamic(X_init,y_init, function_config=None, num_iteration
 
     for i in range(num_iterations):
         # Generate random candidates
-        X_candidates = np.random.rand(n_candidates, dim)
+        X_candidates = generate_candidates(dim,n_candidates, determine_candidate_generation_method(dim) )
+        # X_candidates = np.random.rand(n_candidates, dim)
         
         # GP predictions
         mu, sigma = gp.predict(X_candidates, return_std=True)
@@ -273,7 +260,8 @@ def function_free_bbo_multi_acq(
 
     for i in range(num_iterations):
         # Generate candidates (Latin Hypercube / uniform)
-        X_candidates = np.random.rand(n_candidates, input_dim)
+        # X_candidates = np.random.rand(n_candidates, input_dim)
+        X_candidates = generate_candidates(input_dim,n_candidates, determine_candidate_generation_method(input_dim) )
 
         best_per_acq = {}
 
@@ -349,7 +337,8 @@ def adaptive_bbo_dynamic(X_init, y_init, config, acquisition_list=["EI","UCB","P
 
         # Generate candidates
         n_candidates = 500
-        X_candidates = np.random.rand(n_candidates, input_dim)
+        # X_candidates = np.random.rand(n_candidates, input_dim)
+        X_candidates = generate_candidates(input_dim,n_candidates, determine_candidate_generation_method(input_dim) )
 
         best_per_acq = {}
         for acq_name in acquisition_list:
@@ -366,7 +355,7 @@ def adaptive_bbo_dynamic(X_init, y_init, config, acquisition_list=["EI","UCB","P
                     initial_kappa = 3.0
                     final_kappa = 0.1
                     kappa = initial_kappa * np.exp(-i / num_iterations) + final_kappa
-                    acq_value = acquisition_ucb(mu, sigma, iteration=i, kappa=kappa)
+                    acq_value = acquisition_ucb_Kappa(mu, sigma, iteration=i, kappa=kappa)
                 elif acq_name.upper() == "EI":
                     initial_xi = 0.1
                     final_xi = 0.01
@@ -387,25 +376,42 @@ def adaptive_bbo_dynamic(X_init, y_init, config, acquisition_list=["EI","UCB","P
                     best_value = acq_value
                     best_point = candidate
 
-            X_train, X_scaler = scale_data(X_train, scaler = X_scaler)
-            y_train, y_scaler = scale_data(y_train, scaler = y_scaler)
-        
+           
 
             best_per_acq[acq_name] = (best_point, best_value)
 
         # Select the best across all acquisition functions
         best_acq_name = max(best_per_acq, key=lambda k: best_per_acq[k][1])
         next_point = best_per_acq[best_acq_name][0]
+        # Scale the next candidate point
+        next_point_scaled = X_scaler.transform(next_point.reshape(1, -1))
 
-        # Predict output for history
-        y_next = gp.predict(next_point.reshape(1, -1)).item()
+    # Predict with GP on scaled input
+        y_next_scaled = gp.predict(next_point_scaled).item()
 
-        # Update training data
-        X_train = np.vstack([X_train, next_point])
-        y_train = np.append(y_train, y_next)
+    # Optionally, inverse scale the predicted output if you want it in original units
+        y_next = y_scaler.inverse_transform(np.array([[y_next_scaled]])).item()
 
+    # Update training data (scaled)
+        X_train = np.vstack([X_train, next_point_scaled])
+        y_train = np.append(y_train, y_next_scaled)  # keep y_train scaled for GP training
+
+    # Update history (store original units for easier tracking)
         history["X"] = np.vstack([history["X"], next_point])
         history["y"] = np.append(history["y"], y_next)
+
+        # # Predict output for history
+        # y_next = gp.predict(next_point.reshape(1, -1)).item()
+        # next_point_scaled = X_scaler.transform(next_point.reshape(1,-1))
+        # y_next_scaled = y_scaler.transform(np.array([[y_next]]))
+
+
+        # # Update training data
+        # X_train = np.vstack([X_train, next_point_scaled])
+        # y_train = np.append(y_train, y_next_scaled)
+
+        # history["X"] = np.vstack([history["X"], next_point])
+        # history["y"] = np.append(history["y"], y_next)
 
         print(f"Iter {i+1} | Selected {best_acq_name} | Next input: {next_point} | Predicted y: {y_next:.6f}")
 
@@ -435,7 +441,8 @@ def svr_bbo_loop(X_init, y_init,config,  n_iterations=30, n_candidates=1000, ver
 
     for i in range(n_iterations):
         # Generate candidates in [0,1]^dim
-        X_candidates = np.random.rand(n_candidates, dim)
+        
+        X_candidates = generate_candidates(dim, n_candidates, determine_candidate_generation_method(dim) )
 
         # Predict mean
         mu = svr.predict(X_candidates)
@@ -469,3 +476,579 @@ def svr_bbo_loop(X_init, y_init,config,  n_iterations=30, n_candidates=1000, ver
 
     return best_input, best_output, history
 
+
+def bbo_loop_ForceInwards(X_train, y_train, function_config, acquisition=None, num_iterations=30,
+             model_type="GP", config_override=None, use_boundary=True,
+             n_candidates=500, candidate_method="random", verbose=True):
+    """
+    Modular black-box optimization loop using GP or SVR surrogate.
+
+    Returns:
+        best_input, best_output, history (dict with all sampled points)
+    """
+    X_train = X_train.copy()
+    y_train = y_train.copy()
+    dim = function_config.get("dim", X_train.shape[1])
+
+    acquisition_name = acquisition or function_config.get("acquisition", "UCB")
+
+    # Track all sampled points for debugging
+    history = {
+        "X": X_train.copy(),
+        "y": y_train.copy(),
+        "best_y": [np.max(y_train)],
+        "acquisition": [],
+        "iter": list(range(len(y_train))),
+        "kernel_": []
+    }
+
+   
+  
+    for i in range(num_iterations):
+
+    # --- Build GP and optimize kernel dynamically ---
+        surrogate = build_dynamic_gp(
+                    X_train, y_train,
+                    config=function_config,
+                    iteration=i,
+                    total_iterations=num_iterations
+                                     )
+
+    # --- Fit GP to current data ---
+        surrogate.fit(X_train, y_train)
+        history["kernel_"].append(str(surrogate.kernel_))
+
+    # --- Predict for candidates ---
+        candidate_method = determine_candidate_generation_method(dim)
+        X_candidates = generate_candidates(dim, n_candidates, method=candidate_method)
+        mu, sigma = surrogate.predict(X_candidates, return_std=True)
+
+        initial_kappa = 3.0
+        final_kappa = 0.1
+        kappa = initial_kappa * np.exp(-i / num_iterations) + final_kappa
+
+# Base acquisition
+        acquisition_values = select_acquisition(acquisition_name,
+                                        mu, sigma,
+                                        iteration=i,
+                                        y_max=np.max(y_train),
+                                        kappa=kappa)
+
+# Apply boundary penalty if needed
+        if use_boundary:
+             softness = 0.15 * np.exp(-i / 20)
+             acquisition_values *= apply_boundary_penalty(X_candidates, softness)
+
+# Apply middle boost
+        boost_middle = True
+        middle_bounds = (0.3, 0.7)
+        boost_factor = 2.0
+        if boost_middle:
+            middle_mask = np.all((X_candidates >= middle_bounds[0]) & (X_candidates <= middle_bounds[1]), axis=1)
+            acquisition_values[middle_mask] *= boost_factor
+
+# Pick next point
+        next_idx = np.argmax(acquisition_values)
+        next_point = X_candidates[next_idx]
+        y_next = mu[next_idx]  # or evaluate the real function here
+
+    # --- Update training data ---
+        X_train = np.vstack([X_train, next_point])
+        y_train = np.append(y_train, y_next)
+
+    # --- Return best found ---
+        best_idx = np.argmax(y_train)
+        best_input = X_train[best_idx]
+        best_output = y_train[best_idx]
+        history["X"] = np.vstack([history["X"], next_point])
+        history["y"] = np.append(history["y"], y_next)
+
+        history["best_y"].append(np.max(y_train))
+        history["iter"].append(len(history["iter"]))
+
+        print(f"Iter {i+1}: Optimized kernel = {surrogate.kernel_}") 
+    return best_input, best_output, history
+
+
+
+
+
+def BOLoop_rf(
+    X_init, y_init, input_dim,
+    n_iterations=50,
+    n_candidates=1000,
+    acquisition_methods=["UCB","EI","PI"],
+    use_boundary=False,
+    boost_middle=False,
+    middle_bounds=(0.3,0.7),
+    boost_factor=2.0,
+    initial_beta=3.0,
+    final_beta=0.1
+):
+    X_train = X_init.copy()
+    y_train = y_init.copy()
+    dim = input_dim
+
+    history = {"X": [], "y": [], "best_y": [], "iter": []}
+
+    for i in range(n_iterations):
+        # --- Fit RF surrogate on current data ---
+        rf = RandomForestRegressor(n_estimators=500, min_samples_leaf=2, bootstrap=True,
+                                   n_jobs=-1, random_state=42)
+        rf.fit(X_train, y_train)
+
+        # --- Generate candidates ---
+        X_candidates = generate_candidates(dim, n_candidates, determine_candidate_generation_method(dim))
+        preds = np.array([tree.predict(X_candidates) for tree in rf.estimators_])
+        mu = preds.mean(axis=0)
+        sigma = preds.std(axis=0)
+
+        # --- Dynamic beta ---
+        beta = initial_beta * np.exp(-i / n_iterations) + final_beta
+
+        # --- Compute acquisition values ---
+        acq_values_dict = {}
+        for acq_name in acquisition_methods:
+            acq = select_acquisition(acq_name, mu, sigma, iteration=i, y_max=np.max(y_train), kappa=beta)
+            if use_boundary:
+                softness = 0.15 * np.exp(-i/20)
+                acq *= apply_boundary_penalty(X_candidates, softness)
+            if boost_middle:
+                middle_mask = np.all((X_candidates >= middle_bounds[0]) & (X_candidates <= middle_bounds[1]), axis=1)
+                acq[middle_mask] *= boost_factor
+            acq_values_dict[acq_name] = acq
+
+        # --- Pick the next new input ---
+        best_acq_name = max(acq_values_dict, key=lambda k: acq_values_dict[k].max())
+        next_idx = np.argmax(acq_values_dict[best_acq_name])
+        next_point = X_candidates[next_idx]
+        predicted_output = mu[next_idx]  # predicted by RF
+
+        # --- Save new candidate (no real function call) ---
+        history["X"].append(next_point)
+        history["y"].append(predicted_output)
+        history["best_y"].append(np.max(history["y"]))
+        history["iter"].append(i+1)
+
+        # --- Update surrogate training with this new predicted point ---
+        X_train = np.vstack([X_train, next_point])
+        y_train = np.append(y_train, predicted_output)
+
+        print(f"Iter {i+1}: New predicted input, predicted_y={predicted_output:.6f}")
+
+    # Return last generated input/output and full history
+    return history["X"][-1], history["y"][-1], history
+
+from sklearn.ensemble import RandomForestRegressor
+import numpy as np
+from joblib import Parallel, delayed  # for parallel evaluations
+
+def bayes_opt_rf_batch(
+    X_init, y_init, input_dim,
+    n_iterations=50,
+    n_candidates=1000,
+    batch_size=5,
+    acquisition_methods=["UCB","EI","PI"],
+    use_boundary=False,
+    boost_middle=False,
+    middle_bounds=(0.3,0.7),
+    boost_factor=2.0,
+    initial_beta=3.0,
+    final_beta=0.1,
+    n_jobs=-1
+):
+    X_train = X_init.copy()
+    y_train = y_init.copy()
+    dim = input_dim
+
+    history = {"X": [], "y": [], "best_y": [], "iter": []}
+
+    for i in range(n_iterations):
+        # --- Fit RF surrogate ---
+        rf = RandomForestRegressor(n_estimators=500, min_samples_leaf=2,
+                                   bootstrap=True, n_jobs=-1, random_state=42)
+        rf.fit(X_train, y_train)
+
+        # --- Generate candidates ---
+        X_candidates = generate_candidates(dim, n_candidates, determine_candidate_generation_method(dim))
+        preds = np.array([tree.predict(X_candidates) for tree in rf.estimators_])
+        mu = preds.mean(axis=0)
+        sigma = preds.std(axis=0)
+        print("candidate generated")
+
+        # --- Dynamic beta ---
+        beta = initial_beta * np.exp(-i / n_iterations) + final_beta
+
+        # --- Compute acquisition values for all methods ---
+        acq_values_dict = {}
+        for acq_name in acquisition_methods:
+            acq = select_acquisition(acq_name, mu, sigma, iteration=i, y_max=np.max(y_train), kappa=beta)
+            if use_boundary:
+                softness = 0.15 * np.exp(-i/20)
+                acq *= apply_boundary_penalty(X_candidates, softness)
+            if boost_middle:
+                middle_mask = np.all((X_candidates >= middle_bounds[0]) & (X_candidates <= middle_bounds[1]), axis=1)
+                acq[middle_mask] *= boost_factor
+            acq_values_dict[acq_name] = acq
+
+        # --- Combine all acquisition functions: max across methods ---
+        combined_acq = np.vstack(list(acq_values_dict.values())).max(axis=0)
+        top_indices = combined_acq.argsort()[-batch_size:][::-1]
+        X_next_batch = X_candidates[top_indices]
+        y_next_batch = mu[top_indices]  # predicted outputs
+
+        # --- Update history ---
+        history["X"].extend(X_next_batch)
+        history["y"].extend(y_next_batch)
+        history["best_y"].append(max(history["y"]))
+        history["iter"].append(i+1)
+
+
+    best_idx = np.argmax(history["y"])
+    best_input = history["X"][best_idx]
+    best_output = history["y"][best_idx]
+
+    return best_input, best_output, history
+
+
+def rf_predict(X_train, y_train, input_dim):
+  
+
+    rf_model = RandomForestRegressor(
+        n_estimators=500,
+        max_depth=12,
+        min_samples_leaf=2,
+        random_state=42,
+        bootstrap=True
+    )
+    rf_model.fit(X_train, y_train)
+
+# Candidate points
+    
+    candidates = generate_candidates(input_dim, n_candidates= 5000,method = 'lhc', )
+
+# Predict mean and std from RF
+    all_tree_preds = np.array([tree.predict(candidates) for tree in rf_model.estimators_])
+    pred_mean = all_tree_preds.mean(axis=0)
+    pred_std = all_tree_preds.std(axis=0)
+
+# Upper Confidence Bound acquisition
+    beta = 2.0  # can tune: higher = more exploration
+    acquisition = pred_mean + beta * pred_std
+
+    best_idx = np.argmax(acquisition)
+    next_input = candidates[best_idx]
+    print("Next candidate to try:", next_input)
+    print(best_idx)
+
+
+from .hybridSelector import HybridGP_RF
+
+
+def BO_hybrid_single(
+    X_init,
+    y_init,
+    input_dim,
+    acquisition_methods=["UCB","EI","PI"],
+    n_iterations=60,
+    n_candidates=2000,
+    use_boundary=True,
+    boost_middle=True,
+    middle_bounds=(0.3,0.7),
+    boost_factor=2.0,
+    initial_beta=3.0,
+    final_beta=0.1,
+):
+
+    X_train = X_init.copy()
+    y_train = y_init.copy()
+
+    history = {
+        "X": X_train.copy(),
+        "y": y_train.copy(),
+        "best_y": [y_train.max()],
+        "iter": [0]
+    }
+
+    candidate_method = determine_candidate_generation_method(input_dim)
+
+    for i in range(n_iterations):
+
+        # --- Fit Hybrid Model ---
+        model = HybridGP_RF(input_dim)
+        model.fit(X_train, y_train)
+
+        # --- Generate candidate points ---
+        X_candidates = generate_candidates(
+            input_dim, n_candidates, candidate_method
+        )
+
+        # --- Predict ---
+        mu, sigma = model.predict(X_candidates)
+
+        # --- Dynamic exploration coefficient ---
+        kappa = initial_beta * np.exp(-i / n_iterations) + final_beta
+
+        # --- Evaluate all acquisition functions ---
+        acq_dict = {}
+        for acq_name in acquisition_methods:
+            acq = select_acquisition(
+                acq_name, mu, sigma,
+                y_max=y_train.max(),
+                kappa=kappa,
+                iteration=i
+            )
+
+            if use_boundary:
+                acq *= apply_boundary_penalty(X_candidates)
+
+            if boost_middle:
+                mask = np.all((X_candidates >= middle_bounds[0]) &
+                              (X_candidates <= middle_bounds[1]), axis=1)
+                acq[mask] *= boost_factor
+
+            acq_dict[acq_name] = acq
+
+        # --- Pick best acq method then best point ---
+        best_name = max(acq_dict, key=lambda k: acq_dict[k].max())
+        next_idx = np.argmax(acq_dict[best_name])
+        next_x = X_candidates[next_idx]
+        next_y = mu[next_idx]  # PREDICTED! No real function.
+
+        # --- Update dataset ---
+        X_train = np.vstack([X_train, next_x])
+        y_train = np.append(y_train, next_y)
+
+        # --- Log ---
+        history["X"] = np.vstack([history["X"], next_x])
+        history["y"] = np.append(history["y"], next_y)
+        history["best_y"].append(y_train.max())
+        history["iter"].append(i+1)
+
+        print(f"Iter {i+1}: using {best_name}, predicted y={next_y:.4f}")
+
+    best_idx = np.argmax(y_train)
+    return X_train[best_idx], y_train[best_idx], history
+
+# from joblib import Parallel, delayed
+# import numpy as np
+
+
+def BO_hybrid_batch(
+    X_init,
+    y_init,
+    input_dim,
+    batch_size=5,
+    n_iterations=50,
+    n_candidates=2000,
+    acquisition_methods=["UCB","EI","PI"],
+    use_boundary=True,
+    boost_middle=True,
+    middle_bounds=(0.3,0.7),
+    boost_factor=2.0,
+    initial_beta=3.0,
+    final_beta=0.1,
+    n_jobs=-1
+):
+
+    X_train = X_init.copy()
+    y_train = y_init.copy()
+
+    history = {
+        "X": X_train.copy(),
+        "y": y_train.copy(),
+        "best_y": [y_train.max()],
+        "iter": [0]
+    }
+
+    candidate_method = determine_candidate_generation_method(input_dim)
+
+    for i in range(n_iterations):
+
+        model = HybridGP_RF(input_dim)
+        model.fit(X_train, y_train)
+
+        X_candidates = generate_candidates(input_dim, n_candidates, candidate_method)
+        mu, sigma = model.predict(X_candidates)
+
+        kappa = initial_beta * np.exp(-i / n_iterations) + final_beta
+
+        # All acquisition functions -> choose max over them
+        acq_stack = []
+        for acq_name in acquisition_methods:
+            acq = select_acquisition(
+                acq_name, mu, sigma, y_max=y_train.max(), kappa=kappa
+            )
+            if use_boundary:
+                acq *= apply_boundary_penalty(X_candidates)
+            if boost_middle:
+                mask = np.all((X_candidates >= middle_bounds[0]) &
+                              (X_candidates <= middle_bounds[1]), axis=1)
+                acq[mask] *= boost_factor
+            acq_stack.append(acq)
+
+        combined_acq = np.vstack(acq_stack).max(axis=0)
+        top_idx = combined_acq.argsort()[-batch_size:][::-1]
+        X_batch = X_candidates[top_idx]
+        y_batch = mu[top_idx]  # predicted
+
+        X_train = np.vstack([X_train, X_batch])
+        y_train = np.append(y_train, y_batch)
+
+        history["X"] = np.vstack([history["X"], X_batch])
+        history["y"] = np.append(history["y"], y_batch)
+        history["best_y"].append(y_train.max())
+        history["iter"].append(i+1)
+
+        print(f"Iter {i+1}: Batch added, best_y={y_train.max():.4f}")
+
+    best_idx = y_train.argmax()
+    return X_train[best_idx], y_train[best_idx], history
+
+
+from .ModelComittee import CommitteeSurrogate
+
+
+
+def BO_committee_single(
+    X_init,
+    y_init,
+    input_dim,
+    acquisition_methods=["UCB","EI","PI"],
+    n_iterations=60,
+    n_candidates=2000,
+    use_boundary=False,
+    boost_middle=False,
+    middle_bounds=(0.3,0.7),
+    boost_factor=2.0,
+    initial_beta=3.0,
+    final_beta=0.1
+):
+
+    X_train = X_init.copy()
+    y_train = y_init.copy()
+
+    history = {
+        "X": X_train.copy(),
+        "y": y_train.copy(),
+        "best_y": [y_train.max()],
+        "iter": [0]
+    }
+
+    cand_method = determine_candidate_generation_method(input_dim)
+
+    for i in range(n_iterations):
+
+        # --- Train committee ---
+        model = CommitteeSurrogate(input_dim)
+        model.fit(X_train, y_train)
+
+        # --- Candidate generation ---
+        X_candidates = generate_candidates(input_dim, n_candidates, cand_method)
+
+        # --- Predict ---
+        mu, sigma = model.predict(X_candidates)
+
+        # --- Dynamic UCB beta ---
+        kappa = initial_beta * np.exp(-i / n_iterations) + final_beta
+
+        # --- Acquisition over all models ---
+        acq_dict = {}
+        for acq_name in acquisition_methods:
+            acq = select_acquisition(
+                acq_name, mu, sigma,
+                y_max=y_train.max(),
+                kappa=kappa,
+                iteration=i
+            )
+
+            if use_boundary:
+                acq *= apply_boundary_penalty(X_candidates)
+
+            if boost_middle:
+                mask = np.all(
+                    (X_candidates >= middle_bounds[0]) &
+                    (X_candidates <= middle_bounds[1]), axis=1
+                )
+                acq[mask] *= boost_factor
+
+            acq_dict[acq_name] = acq
+
+        # --- Best acquisition method ---
+        best_acq = max(acq_dict, key=lambda k: acq_dict[k].max())
+        next_idx = np.argmax(acq_dict[best_acq])
+
+        next_x = X_candidates[next_idx]
+        next_y = mu[next_idx]  # predicted
+
+        # --- Update ---
+        X_train = np.vstack([X_train, next_x])
+        y_train = np.append(y_train, next_y)
+
+        history["X"] = np.vstack([history["X"], next_x])
+        history["y"] = np.append(history["y"], next_y)
+        history["best_y"].append(y_train.max())
+        history["iter"].append(i+1)
+
+        print(f"Iter {i+1}: Model Committee, acq={best_acq}, predicted y={next_y:.5f}")
+
+    best_idx = np.argmax(y_train)
+    return X_train[best_idx], y_train[best_idx], history
+
+
+def bo_committee_single2(
+    X_init, y_init, input_dim,
+    n_iterations=30,
+    n_candidates=2000,
+    acquisition="UCB",
+    use_boundary=False,
+    boost_middle=False
+):
+
+
+    X_train = X_init.copy()
+    y_train = y_init.copy()
+
+    surrogate = CommitteeSurrogate(input_dim)
+
+    history = {
+        "X": X_train.copy(),
+        "y": y_train.copy(),
+        "best_y": [np.max(y_train)]
+    }
+
+    for t in range(n_iterations):
+
+        surrogate.fit(X_train, y_train)
+
+        X_candidates = generate_candidates(
+            input_dim, n_candidates,
+            determine_candidate_generation_method(input_dim)
+        )
+
+        mu, sigma = surrogate.predict(X_candidates, return_std=True)
+
+        acq = select_acquisition(
+            acquisition, mu, sigma,
+            iteration=t,
+            y_max=np.max(y_train),
+            kappa=3.0 * np.exp(-t / n_iterations) + 0.1
+        )
+
+        if use_boundary:
+            acq *= apply_boundary_penalty(X_candidates)
+
+        next_x = X_candidates[np.argmax(acq)]
+        next_y = mu[np.argmax(acq)]     # predicted output
+
+        X_train = np.vstack([X_train, next_x])
+        y_train = np.append(y_train, next_y)
+
+        history["X"] = np.vstack([history["X"], next_x])
+        history["y"] = np.append(history["y"], next_y)
+        history["best_y"].append(np.max(y_train))
+
+        print(f"[Iter {t+1}] Acquisition max = {np.max(acq):.4f}")
+
+    best_idx = np.argmax(y_train)
+    return X_train[best_idx], y_train[best_idx], history

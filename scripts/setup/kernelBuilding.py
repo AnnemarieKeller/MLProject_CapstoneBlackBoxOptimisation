@@ -268,6 +268,12 @@ def build_svrKernel_from_config(config=None, model_override=None):
     gamma = cfg.get("gamma", "scale")  # 'scale', 'auto', or float
 
     # Build SVR model
+   
+    if kernel_type.lower() not in ["linear", "poly", "rbf", "sigmoid"]:
+        print(f"Warning: kernel_type '{kernel_type}' not supported for SVR. Using 'rbf' instead.")
+        kernel_type = "rbf"
+        svr_model = SVR(kernel=kernel_type.lower(), C=C_val, epsilon=epsilon, gamma=gamma)
+
     if kernel_type.lower() == "poly":
         svr_model = SVR(kernel="poly", degree=degree, coef0=coef0, C=C_val,
                         epsilon=epsilon, gamma=gamma)
