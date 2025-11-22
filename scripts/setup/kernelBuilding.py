@@ -371,6 +371,7 @@ from sklearn.gaussian_process.kernels import RBF, Matern, RationalQuadratic, Whi
 import numpy as np
 from scipy.spatial.distance import pdist
 from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ConstantKernel as C
 
 
 def build_dynamic_kernel(
@@ -461,6 +462,11 @@ def build_dynamic_kernel(
     else:  
         print(f"Unknown kernel type {kernel_type}, using RBF.")
         base_kernel = RBF(length_scale=length_init, length_scale_bounds=length_bounds)
+
+ 
+
+    base_kernel *= C(cfg.get("C", 1.0), cfg.get("C_bounds", (1e-3, 1e3)))
+    
 
     # =====================================================
     # 4️⃣ Add dynamic WhiteKernel
