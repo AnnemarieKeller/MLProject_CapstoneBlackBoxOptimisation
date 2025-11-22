@@ -1053,7 +1053,7 @@ def bo_committee_single2(
     best_idx = np.argmax(y_train)
     return X_train[best_idx], y_train[best_idx], history
 
-   def adaptive_bbo_dynamic_full(
+def adaptive_bbo_dynamic_full(
     X_init, y_init, config,
     acquisition_list=["EI","UCB","PI","THOMPSON"], 
     kernel_list=["RBF","Matern","RationalQuadratic"],
