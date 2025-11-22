@@ -1,5 +1,6 @@
 FUNCTION_CONFIG = {
-  1:{"name":"2D Contamination"
+
+  1:{"name":"2D Contamination",
     "dim": 2,
     "acquisition": "UCB",           # UCB works well for source localisation
     "kernel_type": "Matern",
@@ -11,10 +12,10 @@ FUNCTION_CONFIG = {
     "normalize_y": True,
     "n_restarts_optimizer": 5,      # more robust hyperparameter fitting
     "boundary_penalty": True
-}
+},
 
 
-    2: { "name" :"2D Noisy Log-Likelihood"
+    2: { "name" :"2D Noisy Log-Likelihood",
         "dim": 2,
         "acquisition": "UCB",
         "kernel_type": "MATERN",
