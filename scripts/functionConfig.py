@@ -1,22 +1,23 @@
 FUNCTION_CONFIG = {
-    1: {  # 2D Contamination
+  1:{"name":"2D Contamination"
+    "dim": 2,
+    "acquisition": "UCB",           # UCB works well for source localisation
+    "kernel_type": "Matern",
+    "add_white": True,
+    "length_scale": "auto",         # let BO learn correlation structure
+    "length_scale_bounds": (1e-2, 1e2),
+    "nu": 2.5,                      # smooth kernel (because function is smooth)
+    "alpha": 1e-6,                  # low noise because function is deterministic
+    "normalize_y": True,
+    "n_restarts_optimizer": 5,      # more robust hyperparameter fitting
+    "boundary_penalty": True
+}
+
+
+    2: { "name" :"2D Noisy Log-Likelihood"
         "dim": 2,
         "acquisition": "UCB",
-        "kernel_type": "Matern",
-        "add_white": True,
-        "length_scale": [0.2, 0.2],
-        "length_scale_bounds": (1e-2, 1e2),
-        "C_bounds": (1e-3, 1e3),
-        "alpha": 1e-6,
-        "nu": 2.5,
-        "normalize_y": True,
-        "n_restarts_optimizer": 10,
-        "boundary_penalty": True
-    },
-    2: {  # 2D Noisy Log-Likelihood
-        "dim": 2,
-        "acquisition": "UCB",
-        "kernel_type": "RBF",
+        "kernel_type": "MATERN",
         "add_white": True,
         "white_noise": 1e-3,
         "white_bounds": (1e-5, 1e1),
@@ -24,10 +25,13 @@ FUNCTION_CONFIG = {
         "length_scale_bounds": (1e-2, 1e2),
         "C_bounds": (1e-3, 1e3),
         "alpha": 1e-3,
-        "nu": 2.5,
+        "nu": 1.5,
         "normalize_y": True,
         "n_restarts_optimizer": 10,
-        "boundary_penalty": True
+        "boundary_penalty": True,
+     "ubc_beta_start": 2.0,               # starting UCB beta
+    "ubc_beta_end": 0.5,                 # final UCB beta for exploitation
+    "dynamic_kernel": True               # enable dynamic length scale & noise
     },
     3: {  # 3D Drug Combination
         "dim": 3,
