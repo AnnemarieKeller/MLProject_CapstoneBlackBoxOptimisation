@@ -95,7 +95,7 @@ def bbo_loopWith(X_train, y_train, function_config, acquisition=None, num_iterat
              model_type="GP", config_override=None, use_boundary=True,
              n_candidates=500, candidate_method="random", verbose=True):
     """
-    Modular black-box optimization loop using GP or SVR surrogate.
+    Modular black-box optimization loop using GP  surrogate.
 
     Returns:
         best_input, best_output, history (dict with all sampled points)
@@ -319,108 +319,102 @@ def function_free_bbo_multi_acq(
     return best_input, best_output, history
 
 
-def adaptive_bbo_dynamic(X_init, y_init, config, acquisition_list=["EI","UCB","PI","THOMPSON"], 
-                         num_iterations=30, random_state=42):
-    np.random.seed(random_state)
+
+
+def adaptive_bbo_dynamic_with_risk(
+    X_init,              
+    y_init,               
+    config,                  
+    acquisition_list=["EI","UCB","PI","THOMPSON"],
+    num_iterations=30,
+    random_state=42,
+    n_candidates=500,
+    min_improve_prob=0.7,
+    mc_draws=2000
+):
+    rng = np.random.RandomState(random_state)
+
+    # 1. Scale inputs/outputs for GP training
     X_train, X_scaler = scale_data(X_init, scaler_type='minmax')
-    y_train, y_scaler = scale_data(np.array(y_init).reshape(-1,1), scaler_type='standard')
+    y_train_scaled, y_scaler = scale_data(np.array(y_init).reshape(-1,1), scaler_type='standard')
+    y_train = y_train_scaled.ravel()
 
-    input_dim = X_init.shape[1]
-
-    history = {"X": X_train.copy(), "y": y_train.copy()}
+    # History in original scale
+    history = {"X": X_init.copy(), "y": np.array(y_init, copy=True)}
 
     for i in range(num_iterations):
-        # Build/update GP kernel dynamically
+        # 2. Build and fit GP surrogate
         gp = build_gpWhiteKernel(config, X_train, y_train)
-        
         gp.fit(X_train, y_train)
 
-        # Generate candidates
-        n_candidates = 500
-        # X_candidates = np.random.rand(n_candidates, input_dim)
-        X_candidates = generate_candidates(input_dim,n_candidates, determine_candidate_generation_method(input_dim) )
+        d = X_train.shape[1]  # input dimension
 
-        best_per_acq = {}
+        # 3. Generate candidate pool (original space) + scale them
+        X_cand_orig = generate_candidates(d, n_candidates,
+                                          determine_candidate_generation_method(d))
+        X_cand = X_scaler.transform(X_cand_orig)
+
+        # 4. Compute GP prediction (mu, sigma) for all candidates
+        mu, sigma = gp.predict(X_cand, return_std=True)
+
+        # 5. Compute acquisition values for all candidates
+        acq_vals = np.zeros(len(X_cand))
+        y_max_train = np.max(y_train)  # best seen (scaled) output
+
         for acq_name in acquisition_list:
-            best_value = -np.inf
-            best_point = None
-            for candidate in X_candidates:
-                mu, sigma = gp.predict(candidate.reshape(1, -1), return_std=True)
-                mu = mu.item()
-                sigma = sigma.item()
-                y_max = np.max(y_train)
-
-                # Dynamic exploration/exploitation
+            for j in range(len(X_cand)):
+                m = mu[j]
+                s = sigma[j]
                 if acq_name.upper() == "UCB":
-                    initial_kappa = 3.0
-                    final_kappa = 0.1
-                    kappa = initial_kappa * np.exp(-i / num_iterations) + final_kappa
-                    acq_value = acquisition_ucb_Kappa(mu, sigma, iteration=i, kappa=kappa)
+                    # example UCB — adjust kappa schedule if needed
+                    kappa = 2.0
+                    val = m + kappa * s
                 elif acq_name.upper() == "EI":
-                    initial_xi = 0.1
-                    final_xi = 0.01
-                    xi = initial_xi * np.exp(-i / num_iterations) + final_xi
-                    acq_value = acquisition_ei(mu, sigma, y_max, xi=xi)
+                    val = acquisition_ei(m, s, y_max_train, xi=0.01)
                 elif acq_name.upper() == "PI":
-                    initial_eta = 0.1
-                    final_eta = 0.01
-                    eta = initial_eta * np.exp(-i / num_iterations) + final_eta
-                    acq_value = acquisition_pi(mu, sigma, y_max, eta=eta)
+                    val = acquisition_pi(m, s, y_max_train, eta=0.01)
                 elif acq_name.upper() == "THOMPSON":
-                    sigma_dynamic = sigma * (np.exp(-i / num_iterations) + 0.05)
-                    acq_value = acquisition_thompson(mu, sigma_dynamic)
+                    val = m + s * rng.randn()
                 else:
-                    raise ValueError(f"Unknown acquisition function: {acq_name}")
+                    raise ValueError("Unknown acquisition: " + acq_name)
+                acq_vals[j] = max(acq_vals[j], val)
 
-                if acq_value > best_value:
-                    best_value = acq_value
-                    best_point = candidate
+        #  Risk filter: estimate probability candidate produces improvement over actual best-observed
+        y_best_obs = np.max(history["y"])  # best in original scale
+        # Monte‑Carlo sample outputs from GP predictive distribution (in scaled output space!)
+        draws = rng.normal(loc=mu[:, None], scale=sigma[:, None], size=(len(X_cand), mc_draws))
+        # Convert draws back to original scale
+        draws_orig = y_s_inv = y_scaler.inverse_transform(draws)
+        # Compare to y_best_obs
+        success_probs = (draws_orig > y_best_obs).mean(axis=1)
 
-           
+        # 7. Select next point: filter by min_improve_prob, fallback to best acquisition
+        idx_good = np.where(success_probs >= min_improve_prob)[0]
+        if len(idx_good) > 0:
+            idx_next = idx_good[np.argmax(acq_vals[idx_good])]
+        else:
+            idx_next = np.argmax(acq_vals)
 
-            best_per_acq[acq_name] = (best_point, best_value)
+        next_x_orig = X_cand_orig[idx_next]
+        next_x_scaled = X_cand[idx_next].reshape(1, -1)
 
-        # Select the best across all acquisition functions
-        best_acq_name = max(best_per_acq, key=lambda k: best_per_acq[k][1])
-        next_point = best_per_acq[best_acq_name][0]
-        # Scale the next candidate point
-        next_point_scaled = X_scaler.transform(next_point.reshape(1, -1))
+        # 8. (In real BO) evaluate real black‑box: here we only use GP prediction
+        y_next_scaled = gp.predict(next_x_scaled).item()
+        y_next = y_s_inv = y_scaler.inverse_transform([[y_next_scaled]])[0,0]
 
-    # Predict with GP on scaled input
-        y_next_scaled = gp.predict(next_point_scaled).item()
+        # 9. Update training data & history
+        X_train = np.vstack([X_train, next_x_scaled])
+        y_train = np.append(y_train, y_next_scaled)
 
-    # Optionally, inverse scale the predicted output if you want it in original units
-        y_next = y_scaler.inverse_transform(np.array([[y_next_scaled]])).item()
-
-    # Update training data (scaled)
-        X_train = np.vstack([X_train, next_point_scaled])
-        y_train = np.append(y_train, y_next_scaled)  # keep y_train scaled for GP training
-
-    # Update history (store original units for easier tracking)
-        history["X"] = np.vstack([history["X"], next_point])
+        history["X"] = np.vstack([history["X"], next_x_orig])
         history["y"] = np.append(history["y"], y_next)
 
-        # # Predict output for history
-        # y_next = gp.predict(next_point.reshape(1, -1)).item()
-        # next_point_scaled = X_scaler.transform(next_point.reshape(1,-1))
-        # y_next_scaled = y_scaler.transform(np.array([[y_next]]))
+        print(f"Iter {i+1} | next_x = {next_x_orig}, predicted y = {y_next:.4f}, P(improve) = {success_probs[idx_next]:.2%}")
 
+    # After loop, return best observed
+    best_idx = np.argmax(history["y"])
+    return history["X"][best_idx], history["y"][best_idx], history
 
-        # # Update training data
-        # X_train = np.vstack([X_train, next_point_scaled])
-        # y_train = np.append(y_train, y_next_scaled)
-
-        # history["X"] = np.vstack([history["X"], next_point])
-        # history["y"] = np.append(history["y"], y_next)
-
-        print(f"Iter {i+1} | Selected {best_acq_name} | Next input: {next_point} | Predicted y: {y_next:.6f}")
-
-    # Return best observed input/output and full history
-    best_idx = np.argmax(y_train)
-    best_input = X_train[best_idx]
-    best_output = y_train[best_idx]
-
-    return best_input, best_output, history
 
 def svr_bbo_loop(X_init, y_init,config,  n_iterations=30, n_candidates=1000, verbose=True, seed=42):
     """
@@ -570,6 +564,108 @@ def bbo_loop_ForceInwards(X_train, y_train, function_config, acquisition=None, n
     return best_input, best_output, history
 
 
+def adaptive_bbo_dynamic(X_init, y_init, config, acquisition_list=["EI","UCB","PI","THOMPSON"], 
+                         num_iterations=30, random_state=42):
+    np.random.seed(random_state)
+    X_train, X_scaler = scale_data(X_init, scaler_type='minmax')
+    y_train, y_scaler = scale_data(np.array(y_init).reshape(-1,1), scaler_type='standard')
+
+    input_dim = X_init.shape[1]
+
+    history = {"X": X_train.copy(), "y": y_train.copy()}
+
+    for i in range(num_iterations):
+        # Build/update GP kernel dynamically
+        gp = build_gpWhiteKernel(config, X_train, y_train)
+        
+        gp.fit(X_train, y_train)
+
+        # Generate candidates
+        n_candidates = 500
+        # X_candidates = np.random.rand(n_candidates, input_dim)
+        X_candidates = generate_candidates(input_dim,n_candidates, determine_candidate_generation_method(input_dim) )
+
+        best_per_acq = {}
+        for acq_name in acquisition_list:
+            best_value = -np.inf
+            best_point = None
+            for candidate in X_candidates:
+                mu, sigma = gp.predict(candidate.reshape(1, -1), return_std=True)
+                mu = mu.item()
+                sigma = sigma.item()
+                y_max = np.max(y_train)
+
+                # Dynamic exploration/exploitation
+                if acq_name.upper() == "UCB":
+                    initial_kappa = 3.0
+                    final_kappa = 0.1
+                    kappa = initial_kappa * np.exp(-i / num_iterations) + final_kappa
+                    acq_value = acquisition_ucb_Kappa(mu, sigma, iteration=i, kappa=kappa)
+                elif acq_name.upper() == "EI":
+                    initial_xi = 0.1
+                    final_xi = 0.01
+                    xi = initial_xi * np.exp(-i / num_iterations) + final_xi
+                    acq_value = acquisition_ei(mu, sigma, y_max, xi=xi)
+                elif acq_name.upper() == "PI":
+                    initial_eta = 0.1
+                    final_eta = 0.01
+                    eta = initial_eta * np.exp(-i / num_iterations) + final_eta
+                    acq_value = acquisition_pi(mu, sigma, y_max, eta=eta)
+                elif acq_name.upper() == "THOMPSON":
+                    sigma_dynamic = sigma * (np.exp(-i / num_iterations) + 0.05)
+                    acq_value = acquisition_thompson(mu, sigma_dynamic)
+                else:
+                    raise ValueError(f"Unknown acquisition function: {acq_name}")
+
+                if acq_value > best_value:
+                    best_value = acq_value
+                    best_point = candidate
+
+           
+
+            best_per_acq[acq_name] = (best_point, best_value)
+
+        # Select the best across all acquisition functions
+        best_acq_name = max(best_per_acq, key=lambda k: best_per_acq[k][1])
+        next_point = best_per_acq[best_acq_name][0]
+        # Scale the next candidate point
+        next_point_scaled = X_scaler.transform(next_point.reshape(1, -1))
+
+    # Predict with GP on scaled input
+        y_next_scaled = gp.predict(next_point_scaled).item()
+
+    # Optionally, inverse scale the predicted output if you want it in original units
+        y_next = y_scaler.inverse_transform(np.array([[y_next_scaled]])).item()
+
+    # Update training data (scaled)
+        X_train = np.vstack([X_train, next_point_scaled])
+        y_train = np.append(y_train, y_next_scaled)  # keep y_train scaled for GP training
+
+    # Update history (store original units for easier tracking)
+        history["X"] = np.vstack([history["X"], next_point])
+        history["y"] = np.append(history["y"], y_next)
+
+        # # Predict output for history
+        # y_next = gp.predict(next_point.reshape(1, -1)).item()
+        # next_point_scaled = X_scaler.transform(next_point.reshape(1,-1))
+        # y_next_scaled = y_scaler.transform(np.array([[y_next]]))
+
+
+        # # Update training data
+        # X_train = np.vstack([X_train, next_point_scaled])
+        # y_train = np.append(y_train, y_next_scaled)
+
+        # history["X"] = np.vstack([history["X"], next_point])
+        # history["y"] = np.append(history["y"], y_next)
+
+        print(f"Iter {i+1} | Selected {best_acq_name} | Next input: {next_point} | Predicted y: {y_next:.6f}")
+
+    # Return best observed input/output and full history
+    best_idx = np.argmax(y_train)
+    best_input = X_train[best_idx]
+    best_output = y_train[best_idx]
+
+    return best_input, best_output, history
 
 
 
@@ -1056,7 +1152,8 @@ def bo_committee_single2(
 def adaptive_bbo_dynamic_full(
     X_init, y_init, config,
     acquisition_list=["EI","UCB","PI","THOMPSON"], 
-    kernel_list=["RBF","Matern","RationalQuadratic"],
+    # kernel_list=["RBF","Matern","RationalQuadratic"],
+    kernel_list=["RBF","Matern"],
     num_iterations=30,
     random_state=42,
     base_candidates=500,
@@ -1181,4 +1278,66 @@ def adaptive_bbo_dynamic_full(
     best_output = y_scaler.inverse_transform(np.array([[y_train[best_idx]]])).item() if scale_candidates else y_train[best_idx]
 
     return best_input, best_output, history, best_results
+
+
+
+def bo_exploit_with_rare_explore(
+      X_init, y_init, config,
+      n_iter = 50,
+      n_candidates = 500,
+      exploit_fraction = 0.8,     # fraction of iterations to exploit
+      random_state = 42
+):
+    rng = np.random.RandomState(random_state)
+
+    history = {"X": X_init.copy(), "y": np.array(y_init, copy=True)}
+
+    for i in range(n_iter):
+
+        # Build and fit GP surrogate on training data
+        gp = build_gpWhiteKernel(config, X_train, y_train)
+        gp.fit(X_train, y_train)
+
+        dim = X_train.shape[1]
+
+        # Generate a candidate pool in original domain, then scale
+        X_cand = generate_candidates(dim, n_candidates,
+                                          method=determine_candidate_generation_method(dim))
+       
+
+        # Predict mean and std for all candidates
+        mu, sigma = gp.predict(X_cand, return_std=True)
+
+        # Decide whether this iteration will be exploit or explore
+        if rng.rand() < exploit_fraction:
+            mode = "exploit"
+        else:
+            mode = "explore"
+
+        if mode == "exploit":
+            # Choose candidate(s) that maximize predicted mean (greedy exploitation)
+            idx_next = np.argmax(mu)
+        else:
+            # Exploration mode: choose candidate(s) that maximize uncertainty (std)
+            idx_next = np.argmax(sigma)
+
+        next_x= X_cand[idx_next]
+      
+
+        # Because you don't have the real black‑box, you predict via GP
+        y_next = gp.predict(next_x).item()
+      
+
+        # Update training data & history
+        X_train = np.vstack([X_train, next_x])
+        y_train = np.append(y_train, y_next)
+
+        history["X"] = np.vstack([history["X"], next_x])
+        history["y"] = np.append(history["y"], y_next)
+
+        print(f"[Iter {i+1:2d}] mode={mode}  x_next={next_x}  pred_y={y_next:.4f}")
+
+    best_idx = np.argmax(history["y"])
+    return history["X"][best_idx], history["y"][best_idx], history
+
 

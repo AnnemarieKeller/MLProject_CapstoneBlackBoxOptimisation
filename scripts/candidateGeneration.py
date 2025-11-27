@@ -85,8 +85,59 @@ def determine_candidate_generation_method(input_dim):
     else:
         raise ValueError(f"input_dim not mapped to candiate method generation: {input_dim}")
    
+
+
+def choose_candidates_with_risk_filter(
+    gp,               # trained GaussianProcessRegressor
+    X_cand,           # array of candidate inputs, shape (n_cand, d)
+    current_best,     # scalar: current best observed output (y_best)
+    margin=0.0,       # float: extra margin over current_best (optional)
+    min_prob=0.6,     # float in [0,1]: minimum required probability to accept candidate
+    n_draws=5000      # int: number of Monte‑Carlo draws to estimate probability
+):
+    """
+    For each candidate in X_cand, estimate the probability that the *true* (noisy)
+    output at that input exceeds (current_best + margin), by sampling from the GP predictive distribution.
+    Returns the subset of candidates that pass the min_prob threshold,
+    sorted by decreasing probability.
+    """
+
+    mu, sigma = gp.predict(X_cand, return_std=True)
+    # Draw many samples per candidate from Normal(mu, sigma^2)
+    # shape: (n_cand, n_draws)
+    draws = np.random.normal(loc=mu[:, None],
+                             scale=sigma[:, None],
+                             size=(X_cand.shape[0], n_draws))
+
+    threshold = current_best + margin
+    # For each candidate, compute fraction of draws > threshold
+    probs = (draws > threshold).mean(axis=1)
+
+    # Filter candidates
+    idx_pass = np.where(probs >= min_prob)[0]
+    # Sort those by descending prob (so highest-chance candidates first)
+    idx_sorted = idx_pass[np.argsort(-probs[idx_pass])]
+
+    return X_cand[idx_sorted], probs[idx_sorted], mu[idx_sorted], sigma[idx_sorted]
+
    
-   
+def estimate_success_prob(gp, X_cand, current_best,
+                          n_samples=5000, margin=0.0):
+    """
+    For each candidate in X_cand, draw many samples from the GP predictive
+    distribution N(mu, sigma^2), and estimate the probability that the
+    actual (noisy) output exceeds current_best + margin.
+    Returns array of success probabilities.
+    """
+    mu, sigma = gp.predict(X_cand, return_std=True)
+    # Draw many samples: shape (n_cand, n_draws)
+    draws = np.random.normal(loc=mu[:, None],
+                             scale=sigma[:, None],
+                             size=(len(X_cand), n_samples))
+    # Compare to threshold
+    threshold = current_best + margin
+    prob = (draws > threshold).mean(axis=1)
+    return prob, mu, sigma
    
    
     # alternative sobol generation method

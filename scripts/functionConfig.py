@@ -4,13 +4,13 @@ FUNCTION_CONFIG = {
     "dim": 2,
     "acquisition": "UCB",           # UCB works well for source localisation
     "kernel_type": "Matern",
-    "add_white": True,
+    "add_white": False,
     "length_scale": "auto",         # let BO learn correlation structure
     "length_scale_bounds": (1e-2, 1e2),
     "nu": 2.5,                      # smooth kernel (because function is smooth)
     "alpha": 1e-6,                  # low noise because function is deterministic
     "normalize_y": True,
-    "n_restarts_optimizer": 5,      # more robust hyperparameter fitting
+    "n_restarts_optimizer": 8,      # more robust hyperparameter fitting
     "boundary_penalty": True
 },
 
@@ -18,7 +18,7 @@ FUNCTION_CONFIG = {
     2: { "name" :"2D Noisy Log-Likelihood",
         "dim": 2,
         "acquisition": "UCB",
-        "kernel_type": "MATERN",
+        "kernel_type": "Matern",
         "add_white": True,
         "white_noise": 1e-3,
         "white_bounds": (1e-5, 1e1),
@@ -30,25 +30,25 @@ FUNCTION_CONFIG = {
         "normalize_y": True,
         "n_restarts_optimizer": 10,
         "boundary_penalty": True,
-     "ubc_beta_start": 2.0,               # starting UCB beta
-    "ubc_beta_end": 0.5,                 # final UCB beta for exploitation
+     "ubc_beta_start": 4.0,               # starting UCB beta
+    "ubc_beta_end": 1,                 # final UCB beta for exploitation
     "dynamic_kernel": True               # enable dynamic length scale & noise
     },
-    3: {  # 3D Drug Combination
+    3: { "name" :"3D Drug Combination",
         "dim": 3,
         "acquisition": "PI",
-        "kernel_type": "RBF",
+        "kernel_type": "Matern",
         "add_white": True,
         "length_scale": [1.0]*3,
         "length_scale_bounds": (1e-5, 1e8),
         "C_bounds": (1e-5, 1e5),
         "alpha": 1e-6,
-        "nu": 2.5,
+        "nu": 1.5,
         "normalize_y": True,
-        "n_restarts_optimizer": 20,
+        "n_restarts_optimizer": 5,
         "boundary_penalty": True
     },
-    4: {  # 4D Warehouse Placement
+    4: {  "name":"4D Warehouse Placement",
         "dim": 4,
         "acquisition": "UCB",
         "kernel_type": "Matern",
@@ -61,7 +61,7 @@ FUNCTION_CONFIG = {
         "n_restarts_optimizer": 15,
         "boundary_penalty": True
     },
-    5: {  # 4D Chemical Yield
+    5: {  "name": "4D Chemical Yield",
         "dim": 4,
         "acquisition": "UCB",
         "kernel_type": "RBF",
@@ -74,7 +74,7 @@ FUNCTION_CONFIG = {
         "n_restarts_optimizer": 10,
         "boundary_penalty": False
     },
-    6: {  # 5D Cake Recipe
+    6: {  "name": "5D Cake Recipe",
         "dim": 5,
         "acquisition": "UCB",
         "kernel_type": "Matern",
@@ -82,12 +82,12 @@ FUNCTION_CONFIG = {
         "length_scale_bounds": (1e-2, 1e2),
         "C_bounds": (1e-3, 1e4),
         "alpha": 1e-6,
-        "nu": 2.5,
+        "nu": 1.5,
         "normalize_y": True,
-        "n_restarts_optimizer": 10,
+        "n_restarts_optimizer": 7,
         "boundary_penalty": True
     },
-    7: {  # 6D ML Hyperparameters
+    7: {  "name":"6D ML Hyperparameters",
         "dim": 6,
         "acquisition": "UCB",
         "kernel_type": "Poly",
@@ -100,7 +100,7 @@ FUNCTION_CONFIG = {
         "n_restarts_optimizer": 10,
         "boundary_penalty": True
     },
-    8: {  # 8D ML Hyperparameters
+    8: {  "name":" 8D ML Hyperparameters",
         "dim": 8,
         "acquisition": "UCB",
         "kernel_type": "Matern",
@@ -110,7 +110,7 @@ FUNCTION_CONFIG = {
         "C_bounds": (1e-3, 1e4),
         "alpha": 1e-6,
         "normalize_y": True,
-        "n_restarts_optimizer": 5,
+        "n_restarts_optimizer": 10,
         "boundary_penalty": True
     }
 }
