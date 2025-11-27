@@ -2,6 +2,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.svm import SVR
 from .kernelBuilding import *
 from .defaultKernelSettings import DEFAULT_KERNEL_SETTINGS
+from scripts.utils.utils import *
 
 
 def build_gp(config=None, X_train=None, y_train=None, kernel_override=None, use_seed = True, seed= 42):
@@ -85,6 +86,7 @@ def build_dynamic_gp(
     iteration=0, total_iterations=30, seed=42
 ):
 
+    # Build kernel dynamically
     kernel = build_dynamic_kernel(
         X_train=X_train,
         y_train=y_train,
@@ -94,14 +96,20 @@ def build_dynamic_gp(
         total_iterations=total_iterations
     )
 
+    dim = X_train.shape[1]
+    alpha = set_alpha(dim)
+
+    n_restarts = config.get("n_restarts_optimizer", 10) if config else 10
+
     gp = GaussianProcessRegressor(
         kernel=kernel,
-        alpha=set_alpha(X_train.shape(1)),
+        alpha=alpha,
         normalize_y=True,
-        n_restarts_optimizer=config.get("n_restarts_optimizer", 10),
+        n_restarts_optimizer=n_restarts,
         random_state=seed
     )
 
     gp.fit(X_train, y_train)
-    print("built dynamic ")
+    # print(f"Built dynamic GP with kernel: {kernel}")
     return gp
+

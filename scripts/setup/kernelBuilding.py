@@ -367,13 +367,9 @@ def build_kernelWithWhiteKernel(config=None, input_dim=None, kernel_override=Non
 
 
 
-from sklearn.gaussian_process.kernels import RBF, Matern, RationalQuadratic, WhiteKernel
+from sklearn.gaussian_process.kernels import RBF, Matern, RationalQuadratic, WhiteKernel, ConstantKernel as C
 import numpy as np
 from scipy.spatial.distance import pdist
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import ConstantKernel as C
-
-
 def build_dynamic_kernel(
     X_train=None, 
     y_train=None, 
@@ -393,7 +389,7 @@ def build_dynamic_kernel(
     # --- override if explicitly given ---
     if kernel_override is not None:
         return kernel_override
-    
+
     cfg = config or {}
 
     # Determine dimensions
@@ -463,11 +459,6 @@ def build_dynamic_kernel(
         print(f"Unknown kernel type {kernel_type}, using RBF.")
         base_kernel = RBF(length_scale=length_init, length_scale_bounds=length_bounds)
 
- 
-
-    base_kernel *= C(cfg.get("C", 1.0), cfg.get("C_bounds", (1e-3, 1e3)))
-    
-
     # =====================================================
     # 4️⃣ Add dynamic WhiteKernel
     # =====================================================
@@ -479,5 +470,194 @@ def build_dynamic_kernel(
     return base_kernel + white
 
 
+def build_dynamic_kernel_broken(X_train, y_train, config=None, kernel_override=None,
+                         iteration=0, total_iterations=30):
+    """
+    Builds a Gaussian Process kernel dynamically based on input data and config.
+    Handles dynamic noise, length scales, multiple kernel types, and constant multipliers.
+    Works for any input dimension.
+    """
 
+    dim = X_train.shape[1]
+
+    if kernel_override is not None:
+        return kernel_override
+
+    cfg = config or {}
+    kernel_type = cfg.get("kernel_type", "rbf").lower()
+    add_white = cfg.get("add_white", True)
+
+    # ----------------------------
+    # 1️⃣ Compute y statistics for noise
+    # ----------------------------
+    y_std = np.std(y_train) if y_train is not None else 1.0
+    noise_init = max(1e-6, 0.1 * y_std)
+    decay = np.exp(-iteration / total_iterations)
+    noise_upper = max(1e-3, y_std * decay)
+    noise_bounds = (1e-8, noise_upper)
+
+    # ----------------------------
+    # 2️⃣ Length-scale handling
+    # ----------------------------
+    avg_dist = np.mean(pdist(X_train)) if len(X_train) > 2 else 1.0
+    length_init = np.ones(dim) * avg_dist
+    length_bounds = cfg.get("length_scale_bounds", (avg_dist / 100, avg_dist * 10))
+
+    # Convert scalar bounds to arrays for multi-dimensional inputs
+    if isinstance(length_bounds[0], (int, float)):
+        length_bounds = (np.full(dim, length_bounds[0]), np.full(dim, length_bounds[1]))
+    else:
+        length_bounds = (np.array(length_bounds[0]), np.array(length_bounds[1]))
+        if len(length_bounds[0]) != dim:
+            length_bounds = (np.full(dim, length_bounds[0][0]), np.full(dim, length_bounds[1][0]))
+
+    # If 1D, convert to scalars
+    if dim == 1:
+        length_init = float(length_init[0])
+        length_bounds = (float(length_bounds[0][0]), float(length_bounds[1][0]))
+
+    # ----------------------------
+    # 3️⃣ Select kernel type
+    # ----------------------------
+    if kernel_type == "rbf":
+        base_kernel = RBF(length_scale=length_init, length_scale_bounds=length_bounds)
+    elif kernel_type == "matern":
+        nu = cfg.get("nu", 2.5)
+        base_kernel = Matern(length_scale=length_init, length_scale_bounds=length_bounds, nu=nu)
+    elif kernel_type == "rationalquadratic":
+        alpha_rq = cfg.get("alpha_rq", 1.0)
+        base_kernel = RationalQuadratic(length_scale=length_init, length_scale_bounds=length_bounds, alpha=alpha_rq)
+    else:
+        print(f"Unknown kernel type '{cfg.get('kernel_type')}', using RBF.")
+        base_kernel = RBF(length_scale=length_init, length_scale_bounds=length_bounds)
+
+    # ----------------------------
+    # 4️⃣ Constant kernel multiplier
+    # ----------------------------
+    C_val = cfg.get("C", 1.0)
+    C_bounds = cfg.get("C_bounds", (1e-3, 1e3))
+    if isinstance(C_bounds[0], (list, np.ndarray)):
+        C_bounds = (float(C_bounds[0][0]), float(C_bounds[1][0]))
+    else:
+        C_bounds = (float(C_bounds[0]), float(C_bounds[1]))
+    base_kernel = C(C_val, C_bounds) * base_kernel
+
+    # ----------------------------
+    # 5️⃣ Add WhiteKernel dynamically
+    # ----------------------------
+    if add_white:
+        if isinstance(noise_bounds[0], (list, np.ndarray)):
+            noise_bounds = (float(noise_bounds[0]), float(noise_bounds[1]))
+        base_kernel += WhiteKernel(noise_level=noise_init, noise_level_bounds=noise_bounds)
+
+    return base_kernel
+
+def build_dynamic_kernel_length_handled(
+    X_train=None,
+    y_train=None,
+    config=None,
+    kernel_override=None,
+    iteration=0,
+    total_iterations=30
+):
+    """
+    Fully dynamic Gaussian Process kernel builder.
+
+    Features:
+    - Automatically estimates length_scale from X geometry
+    - Supports isotropic (scalar) or anisotropic (per-dim) length scales
+    - Dynamic noise from y variability
+    - Shrinking noise upper bound over iterations
+    - Supports RBF, Matern, RationalQuadratic
+    - Adds ConstantKernel multiplier if specified
+    """
+
+    if kernel_override is not None:
+        return kernel_override
+
+    cfg = config or {}
+
+    # ----------------------------
+    # Determine dimensionality
+    # ----------------------------
+    dim = X_train.shape[1] if X_train is not None else cfg.get("dim", 1)
+
+    # ----------------------------
+    # Early return if no data yet
+    # ----------------------------
+    if X_train is None or y_train is None or len(X_train) < 2:
+        base_kernel = RBF(length_scale=np.ones(dim), length_scale_bounds=(1e-2, 1e2))
+        white = WhiteKernel(noise_level=1e-3, noise_level_bounds=(1e-6, 1e-1))
+        return base_kernel + white
+
+    # ----------------------------
+    # 1️⃣ Dynamic noise estimation
+    # ----------------------------
+    y_std = np.std(y_train)
+    noise_init = max(1e-6, 0.1 * y_std)
+    decay = np.exp(-iteration / total_iterations)
+    noise_upper = max(1e-3, y_std * decay)
+    noise_bounds = (1e-8, noise_upper)
+
+    # ----------------------------
+    # 2️⃣ Dynamic length-scale estimation
+    # ----------------------------
+    avg_dist = np.mean(pdist(X_train)) if len(X_train) > 2 else 1.0
+    length_init = np.ones(dim) * avg_dist
+
+    # Default bounds
+    length_bounds = (avg_dist / 100, avg_dist * 10)
+
+    # Allow config override
+    if "length_bounds" in cfg:
+        length_bounds = cfg["length_bounds"]
+
+    # Ensure correct shapes
+    if isinstance(length_bounds[0], (int, float)):
+        # scalar bounds → isotropic
+        length_bounds = (float(length_bounds[0]), float(length_bounds[1]))
+    else:
+        # bounds as arrays → ensure length matches dim
+        lb, ub = np.array(length_bounds[0]), np.array(length_bounds[1])
+        if len(lb) != dim:
+            lb = np.full(dim, lb[0])
+        if len(ub) != dim:
+            ub = np.full(dim, ub[0])
+        length_bounds = (lb, ub)
+
+    # ----------------------------
+    # 3️⃣ Select kernel type
+    # ----------------------------
+    kernel_type = cfg.get("kernel_type", "RBF").lower()
+    if kernel_type == "rbf":
+        base_kernel = RBF(length_scale=length_init, length_scale_bounds=length_bounds)
+    elif kernel_type == "matern":
+        nu = cfg.get("nu", 2.5)
+        base_kernel = Matern(length_scale=length_init, length_scale_bounds=length_bounds, nu=nu)
+    elif kernel_type == "rationalquadratic":
+        alpha_rq = cfg.get("alpha_rq", 1.0)
+        base_kernel = RationalQuadratic(length_scale=length_init, length_scale_bounds=length_bounds, alpha=alpha_rq)
+    else:
+        print(f"Unknown kernel type '{cfg.get('kernel_type')}', using RBF")
+        base_kernel = RBF(length_scale=length_init, length_scale_bounds=length_bounds)
+
+    # ----------------------------
+    # 4️⃣ Optional Constant kernel multiplier
+    # ----------------------------
+    C_val = cfg.get("C", 1.0)
+    C_bounds = cfg.get("C_bounds", (1e-3, 1e3))
+    if isinstance(C_bounds[0], (list, np.ndarray)):
+        C_bounds = (float(C_bounds[0][0]), float(C_bounds[1][0]))
+    else:
+        C_bounds = (float(C_bounds[0]), float(C_bounds[1]))
+    base_kernel = C(C_val, C_bounds) * base_kernel
+
+    # ----------------------------
+    # 5️⃣ Add dynamic WhiteKernel
+    # ----------------------------
+    add_white = cfg.get("add_white", True)
+    if add_white:
+        base_kernel += WhiteKernel(noise_level=noise_init, noise_level_bounds=noise_bounds)
+
+    return base_kernel
 
