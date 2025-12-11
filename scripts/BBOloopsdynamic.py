@@ -1,5 +1,5 @@
 # import accquistionscripts as acq
-import scripts.functionConfig as funcConfig
+import scripts.configs.functionConfig as funcConfig
 from scripts.accquistions import *
 from scripts.scaler import *
 
