@@ -133,6 +133,7 @@ The final **GP health score** combines these metrics as a weighted sum:
 GP Health = 0.4 * cond_norm + 0.3 * sigma_norm + 0.3 * loglike_norm
 # Advanced
 score = 0.5 * calibration + 0.3 * stability + 0.2 * residual_pattern
+`````
 
 ### Multimodal Optimization Support
 
@@ -157,7 +158,7 @@ In addition to standard Bayesian optimization, our framework is compatible with 
 * Your GP health metrics and diagnostics therefore provide **direct support for reliable multimodal optimization**, aligning with the methods described in Wu et al., 2022.
 ### Function 2: Noise-Aware Expected Improvement (EI)
 
-Our planned implementation of Function 2 focuses on **enhancing the classical Expected Improvement (EI) acquisition function** to properly account for noisy observations.  
+Our planned implementation of Exploring Function 2 focuses on **enhancing the classical Expected Improvement (EI) acquisition function** to properly account for noisy observations.  
 
 **Reference:**  
 [Zhou et al., 2023, Noise-Aware Expected Improvement in Bayesian Optimization](https://arxiv.org/abs/2310.05166)  
