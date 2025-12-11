@@ -1,4 +1,20 @@
-# Gaussian Process Surrogate Framework and GP Health Metrics
+This Project is for the Capstone Project which was modeled after NeurIPS 2020 Challenge
+
+# Modern Black-Box Optimization: Lessons from the NeurIPS 2020 Challenge
+
+The **NeurIPS 2020 Black-Box Optimization Challenge** benchmarked algorithms on realistic, noisy, and multimodal functions. It highlighted key innovations that shaped modern optimization:  
+
+- **Heteroscedastic modeling** to handle variable noise ([HEBO by Huawei Noah’s Ark Lab](https://noahark.com/ebo-heteroscedastic-evolutionary-bayesian-optimization))  
+- **Adaptive and ensemble surrogates** for robustness across tasks ([NVIDIA GPU accelerated ensemble search](https://developer.nvidia.com/gpu-accelerated-exhaustive-search))  
+- **Switching and multi-strategy optimization** for multimodal landscapes ([Squirrel optimizer by AutoML.org & IOHprofiler](https://www.iohprofiler.org/squirrel))  
+- **Local partitioned search for black-box functions** ([JetBrains Research approach](https://research.jetbrains.org/en/publications/solving-black-box-optimization-challenge-via-learning-search-space-partition))  
+- **Ensemble Bayesian optimization strategies** for high performance ([Du Xiaoman DI study](https://arxiv.org/abs/2105.02143))  
+- **Practical, reproducible BO frameworks** ([Optuna team BBO 2020 method](https://optuna.org/blog/black-box-optimization-challenge-2020))  
+
+These techniques remain relevant today for optimizing functions in **low-dimensional exploration, noisy evaluations, combinatorial settings, and real-world applications** such as contamination detection, likelihood maximization, and drug discovery.  
+
+
+# Gaussian Process Surrogate Framework and GP Health Metrics 
 
 This repository implements a **Gaussian Process (GP) surrogate modeling framework** with diagnostic metrics to evaluate the "health" of the surrogate. The design ensures that the GP is **numerically stable, predictive uncertainty is well-calibrated, and hyperparameters are reasonable**, enabling robust Bayesian optimization or surrogate-based analysis.
 
@@ -43,53 +59,6 @@ The GP health framework evaluates surrogate quality before using it for optimiza
 | **Hyperparameter Stability** | Checks kernel length-scales and other hyperparameters; extreme values are penalized. |  [Duvenaud, 2014](https://www.repository.cam.ac.uk/items/a54f0711-f777-4ee1-a685-3b76dae5ad91) |
 |* SciPy `normaltest` docs: based on D’Agostino and Pearson’s test ([link](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html))|
 
-# Gaussian Process Surrogate Framework and GP Health Metrics
-
-This repository implements a **Gaussian Process (GP) surrogate modeling framework** with diagnostic metrics to evaluate the "health" of the surrogate. The design ensures that the GP is **numerically stable, predictive uncertainty is well-calibrated, and hyperparameters are reasonable**, enabling robust Bayesian optimization or surrogate-based analysis.
-
----
-
-## 1. Candidate Selection and Kernel Choices
-
-**Candidate selection** and **kernel selection** strongly influence GP performance. The choices in this repository are based on established literature:
-
-### Candidate Selection
-
-| Reference | Description | Why it’s relevant |
-|-----------|-------------|-----------------|
-| [Brochu et al., 2010](https://arxiv.org/abs/2006.11135) | Overview of Bayesian optimization and candidate selection strategies. | Provides foundational theory for selecting candidate points in Bayesian optimization and motivates using acquisition functions. |
-| [Deshpande et al., 2024](https://www.sciencedirect.com/science/article/pii/S2666827022000640) | Discusses surrogate uncertainty calibration in candidate selection. | Shows that well-calibrated GP uncertainty improves optimization outcomes. |
-| [Snoek et al., 2012](https://arxiv.org/abs/1505.02350) | Popular Bayesian optimization strategies, including acquisition functions. | Supports the acquisition strategy used in this framework. |
-| [McCantin, 2020](https://rmcantin.github.io/bayesopt/html/bopttheory.html) | Practical guide to Bayesian optimization and surrogate evaluation. | Provides practical guidance for implementing Bayesian optimization loops with GP surrogates. |
-
-### Kernel Selection
-
-| Reference | Description | Why it’s relevant |
-|-----------|-------------|-----------------|
-| [Duvenaud, 2014](https://www.cs.toronto.edu/~duvenaud/cookbook/index.html) | Comprehensive kernel cookbook for GP regression. | Guides selection of kernels that balance flexibility and stability, important for hyperparameter reliability. |
-| [Stephenson et al., 2022](https://proceedings.mlr.press/v151/stephenson22a.html) | Discusses advanced kernel choices for stable GP predictions. | Supports reasoning for kernel choices that avoid ill-conditioning and overfitting. |
-| [Speekenbrink, Tutorial on GP Regression](https://discovery.ucl.ac.uk/id/eprint/10050029/1/Speekenbrink_Tutorial%20on%20Gaussian%20process%20regression.pdf) | Clear explanation of kernel influence on GP performance. | Provides a beginner-friendly explanation of GP kernels and their effect on predictive variance and mean. |
-
-> These references guided the choice of kernels and candidate selection strategies to ensure robustness, predictive fidelity, and numerical stability.
-
----
-
-## 2. GP Health Metrics
-
-The GP health framework evaluates surrogate quality before using it for optimization or prediction.  
-
-| Metric / Goal | Description | Reference / Link |
-|---------------|-------------|----------------|
-| **Kernel Conditioning** | Measures numerical stability of the kernel matrix; high condition number → unstable predictions. | Rasmussen & Williams, *GPML* Ch. 2-5 ([link](http://www.gaussianprocess.org/gpml/)) |
-| **Predictive Uncertainty** | Average predictive standard deviation; high uncertainty reduces health score. | Probabilistic surrogate modeling by GP ([ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/S0951832024001686)) |
-| **Log-Marginal Likelihood** | Measures GP fit quality and penalizes complexity. | Rasmussen & Williams, *GPML* |
-| **Residual Calibration** | Standardized residuals should follow a standard normal distribution; checks predictive uncertainty. | Kuleshov et al., 2018 ([arXiv](https://arxiv.org/abs/1807.00263)) |
-| **Residual Patterns** | Detects autocorrelation in residuals; high correlation indicates missing patterns. | Rasmussen & Williams, Ch. 5 |
-| **Hyperparameter Stability** | Checks kernel length-scales and other hyperparameters; extreme values are penalized. | Duvenaud, 2014 |
-
-> The GP health score combines these metrics into a single value between 0 (poor GP) and 1 (excellent GP), providing an interpretable diagnostic for the surrogate.
-
----
 
 ## 3. Residuals and Calibration Check
 
@@ -555,10 +524,10 @@ standardized: z_i = residual / σ_i
              └────────────┬────────────┘
                           │
              ┌────────────┴────────────┐
-             │ Compute final GP health  │
-             │ score = weighted sum of  │
-             │ calibration, stability,  │
-             │ residual pattern         │
+             │ Compute final GP health │
+             │ score = weighted sum of │
+             │ calibration, stability, │
+             │ residual pattern        │
              └────────────┬────────────┘
                           │
                    ┌──────┴───────┐
@@ -567,103 +536,35 @@ standardized: z_i = residual / σ_i
                    │ (excellent)  │
                    └──────────────┘
                  ┌───────────────────┐
-                 │   GP Health Score  │
-                 │   (0 = bad, 1=good) │
+                 │   GP Health Score │
+                 │   (0 = bad, 1=good│
                  └─────────┬─────────┘
-                           │
-           ┌───────────────┼───────────────┐
-           │               │               │
-   ┌───────▼───────┐ ┌─────▼─────┐ ┌──────▼──────┐
-   │ Calibration   │ │ Hyperparam ││ Residual    │
-   │ (50%)         │ │ Stability  ││ Patterns    │
-   └───────┬───────┘ │ (30%)      ││ (20%)       │
-           │         └────────────┘└─────────────┘
-           │
-   ┌───────▼────────┐
-   │ Standardized   │
-   │ residuals z =  │
-   │ residuals/sigma│
-   │ normaltest(z)  │
-   └────────────────┘
+                           │    
+                           │──────│
+                         this results in
+                  ┌───────────────┼───────────────┐
+           ┌──────▼──────┐ ┌──────▼─────┐  ┌──────▼──────┐
+           │ Calibration │ │ Hyperparam │  │ Residual    │
+           │ (50%)       │ │ Stability  │  │ Patterns    │
+           └──────┬──────┘ │ (30%)      │  │ (20%)       │
+                  │        └────────────┘  └─────────────┘
+                  │
+          ┌───────▼────────┐
+          │ Standardized   │
+          │ residuals z =  │
+          │ residuals/sigma│
+          │ normaltest(z)  │
+          └────────────────┘
 
 
 This works because, for a **well-calibrated GP**, the predictive distribution covers the true y-values with the predicted σ.
 
 
-                   ┌─────────────────────┐
-                   │   Train GP on (X,y) │
-                   └─────────┬──────────┘
-                             │
-             ┌───────────────┴────────────────┐
-             │ Predictive mean & std (μ, σ)   │
-             └───────────────┬────────────────┘
-                             │
-              ┌──────────────┴──────────────┐
-              │ Compute residuals:          │
-              │ residuals = y - μ           │
-              └──────────────┬──────────────┘
-                             │
-              ┌──────────────┴──────────────┐
-              │ Standardize residuals:      │
-              │ z = residual / σ            │
-              └──────────────┬──────────────┘
-                             │
-           ┌─────────────────┴─────────────────┐
-           │ Check calibration: z ~ N(0,1)     │
-           │ - Use normality test (normaltest) │
-           │ - High p-value → good calibration │
-           └──────────────┬───────────────────-┘
-                          │
-             ┌────────────┴────────────┐
-             │ Check residual patterns │
-             │ - autocorrelation of res│
-             │ - no strong patterns    │
-             └────────────┬────────────┘
-                          │
-             ┌────────────┴────────────┐
-             │ Check hyperparameter     │
-             │ stability: kernel params │
-             │- extreme values penalized│
-             └────────────┬────────────┘
-                          │
-             ┌────────────┴────────────┐
-             │ Compute final GP health  │
-             │ score = weighted sum of  │
-             │ calibration, stability,  │
-             │ residual pattern         │
-             └────────────┬────────────┘
-                          │
-                   ┌──────┴───────┐
-                   │ GP health =  │
-                   │ 0 (bad) → 1  │
-                   │ (excellent)  │
-                   └──────────────┘
-                 ┌───────────────────┐
-                 │   GP Health Score  │
-                 │   (0 = bad, 1=good) │
-                 └─────────┬─────────┘
-                           │
-           ┌───────────────┼───────────────┐
-           │               │               │
-   ┌───────▼───────┐ ┌─────▼─────┐ ┌──────▼──────┐
-   │ Calibration   │ │ Hyperparam ││ Residual    │
-   │ (50%)         │ │ Stability  ││ Patterns    │
-   └───────┬───────┘ │ (30%)      ││ (20%)       │
-           │         └────────────┘└─────────────┘
-           │
-   ┌───────▼────────┐
-   │ Standardized   │
-   │ residuals z =  │
-   │ residuals/sigma│
-   │ normaltest(z)  │
-   └────────────────┘
 
+# BlackBox Functions used :
+The goal of the project is submit input queries to 8 functions once per week and to gain the corresponding output. 
 
-# Benchmark Function Selection and Bayesian Optimization Framework
-
-This repository provides a suite of benchmark functions (Functions 1–8) designed to cover a diverse set of **dimensionalities, noise profiles, and optimization challenges**, reflecting real-world black-box optimization problems. The selection parallels well-known **Bayesian optimization (BO) benchmarks**, including the **2020 Black-Box Optimization (BBO) Challenge**, where algorithms such as **HEBO** (Heteroscedastic Evolutionary Bayesian Optimization) and **Squirrel** demonstrated robust performance across diverse, noisy, and multimodal landscapes.
-
-## Function Categories and Literature Justification
+## Function to be Explored and Literature Justification of Approach
 
 | Function   | Input Dim | Output Dim | Initial Sample Size | Optimization Goal | Sample Applications | Literature / Relevance |
 |-----------|-----------|-----------|------------------|-----------------|------------------|----------------------|
