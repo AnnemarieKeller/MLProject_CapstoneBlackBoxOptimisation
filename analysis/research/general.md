@@ -40,7 +40,7 @@ The GP health framework evaluates surrogate quality before using it for optimiza
 | **Log-Marginal Likelihood** | Measures GP fit quality and penalizes complexity; normalized via sigmoid to 0–1. | [Rasmussen & Williams, *GPML*](https://gaussianprocess.org/gpml/chapters/RW.pdf) |
 | **Residual Calibration** | Standardized residuals \(z = \frac{y - \mu}{\sigma}\); check normality for predictive calibration. | Kuleshov et al., 2018 ([arXiv](https://arxiv.org/abs/1807.00263)) |
 | **Residual Patterns** | Detects autocorrelation in residuals; high correlation indicates missing patterns. | [Rasmussen & Williams, Ch. 5 ]((https://gaussianprocess.org/gpml/chapters/RW.pdf))
-| **Hyperparameter Stability** | Checks kernel length-scales and other hyperparameters; extreme values are penalized. | [Duvenaud, 2014] (https://www.repository.cam.ac.uk/items/a54f0711-f777-4ee1-a685-3b76dae5ad91) |
+| **Hyperparameter Stability** | Checks kernel length-scales and other hyperparameters; extreme values are penalized. |([Duvenaud, 2014] (https://www.repository.cam.ac.uk/items/a54f0711-f777-4ee1-a685-3b76dae5ad91)) |
 |* SciPy `normaltest` docs: based on D’Agostino and Pearson’s test ([link](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html))|
 
 # Gaussian Process Surrogate Framework and GP Health Metrics
