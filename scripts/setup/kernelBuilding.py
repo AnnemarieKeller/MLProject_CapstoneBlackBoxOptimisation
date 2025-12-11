@@ -2,6 +2,9 @@ from sklearn.gaussian_process.kernels import (
     Matern, RBF, WhiteKernel, ConstantKernel as C, RationalQuadratic, DotProduct, ExpSineSquared
 )
 import importlib
+from sklearn.gaussian_process.kernels import RBF, Matern, RationalQuadratic, WhiteKernel, ConstantKernel as C
+import numpy as np
+from scipy.spatial.distance import pdist
 
 from .defaultKernelSettings import DEFAULT_KERNEL_SETTINGS, KERNEL_CLASSES
 
@@ -366,10 +369,6 @@ def build_kernelWithWhiteKernel(config=None, input_dim=None, kernel_override=Non
 
 
 
-
-from sklearn.gaussian_process.kernels import RBF, Matern, RationalQuadratic, WhiteKernel, ConstantKernel as C
-import numpy as np
-from scipy.spatial.distance import pdist
 def build_dynamic_kernel(
     X_train=None, 
     y_train=None, 
@@ -402,7 +401,7 @@ def build_dynamic_kernel(
         return base_kernel + white
 
     # =====================================================
-    # 1️⃣ Dynamic noise estimation from y
+    #  Dynamic noise estimation from y
     # =====================================================
     y_std = np.std(y_train)
 
@@ -416,7 +415,7 @@ def build_dynamic_kernel(
     noise_bounds = (1e-8, noise_upper)
 
     # =====================================================
-    # 2️⃣ Dynamic length-scale estimation from geometry of X
+    # Dynamic length-scale estimation from geometry of X
     # =====================================================
 
     # average distance between points
@@ -433,7 +432,7 @@ def build_dynamic_kernel(
         length_bounds = cfg["length_bounds"]
 
     # =====================================================
-    # 3️⃣ Choose kernel class
+    #  Choose kernel class
     # =====================================================
     kernel_type = cfg.get("kernel_type", "RBF")
 
@@ -460,7 +459,7 @@ def build_dynamic_kernel(
         base_kernel = RBF(length_scale=length_init, length_scale_bounds=length_bounds)
 
     # =====================================================
-    # 4️⃣ Add dynamic WhiteKernel
+    #  Add dynamic WhiteKernel
     # =====================================================
     white = WhiteKernel(
         noise_level=noise_init,

@@ -14,7 +14,7 @@ from sklearn.gaussian_process.kernels import Matern, RBF, WhiteKernel
 from sklearn.metrics import mean_squared_error, pairwise_distances, davies_bouldin_score
 from scripts.utils.generateX_Y import *
 from scripts.BBOloop import *
-import scripts.functionConfig as funcConfig
+import scripts.configs.functionConfig as funcConfig
 
 
 
@@ -484,7 +484,7 @@ def find_lvr(X,y, n_neighbors=2):
     for i in range(len(X)):
         j = indices[i, 1]  # nearest neighbor (skip itself)
         dx = np.linalg.norm(X[i] - X[j])
-        dy = abs(Y[i] - Y[j])
+        dy = abs(y[i] - y[j])
         local_ratios.append(dy / (dx + 1e-8))
 
     lvr = np.mean(local_ratios)
@@ -676,6 +676,49 @@ def analyze_landscape(X, y, gp_kernel=None, cluster_eps=0.1, cluster_min_samples
             "sigma": peak_sigmas.tolist()
         }
     return results
+
+
+def estimate_noise_and_min_prob(X, y, gp=None):
+    """
+    Estimate if a function is smooth or noisy based on observed data (X, y)
+    Optionally uses a GP surrogate to refine the estimate.
+    
+    Returns:
+        noise_level: estimated normalized noise (0 = very smooth, 1 = very noisy)
+        suggested_min_prob: recommended min_prob for global candidate filtering
+    """
+    X = np.array(X)
+    y = np.array(y)
+
+    if len(y) < 2:
+        # Not enough points to judge
+        return 0.0, 0.5
+
+    # ----- Method 1: look at residuals -----
+    if gp is not None:
+        # Predict with GP
+        mu, sigma = gp.predict(X, return_std=True)
+        residuals = np.abs(mu - y)
+    else:
+        # Use differences between neighboring points
+        residuals = np.abs(np.diff(y))
+        if residuals.size == 0:
+            residuals = np.array([0.0])
+
+    # Normalize residuals
+    y_range = y.max() - y.min()
+    if y_range == 0:
+        y_range = 1e-8
+    noise_level = np.mean(residuals) / y_range
+    noise_level = np.clip(noise_level, 0.0, 1.0)
+
+    # ----- Map noise level to min_prob -----
+    # More noise → lower min_prob (allow exploration)
+    # Less noise → higher min_prob (exploit promising points)
+    suggested_min_prob = 0.7 - 0.4 * noise_level  # range ~0.3 → 0.7
+    suggested_min_prob = np.clip(suggested_min_prob, 0.2, 0.7)
+
+    return noise_level, suggested_min_prob
 
 
 

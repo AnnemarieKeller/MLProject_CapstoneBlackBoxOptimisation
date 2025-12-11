@@ -7,6 +7,7 @@ def generate_data(functionNo,weekNo):
     inputs = get_weekly_inputs(functionNo=functionNo,weekNo = weekNo)
     outputs = get_weekly_outputs(functionNo=functionNo,weekNo = weekNo)
     print(len(outputs))
+    assert len(outputs) == len(inputs), f"Outputs length ({len(outputs)}) != Inputs length ({len(inputs)})"
     X_train = np.array(inputs)
     y_train = np.array(outputs)
     return X_train,y_train
