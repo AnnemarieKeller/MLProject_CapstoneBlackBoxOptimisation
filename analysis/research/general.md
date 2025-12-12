@@ -20,6 +20,7 @@ This repository implements a **Gaussian Process (GP) surrogate modeling framewor
 
 ---
 ## General resources about GP : 
+- [Black Box Bayesian Optimisation - General Overview](https://wiki.ubc.ca/Black-Box_Optimization_using_Bayesian_Optimization)
 - [Gaussian Processes](https://krasserm.github.io/2018/03/19/gaussian-processes)
 - [Bayesian Optimisation](https://krasserm.github.io/2018/03/21/bayesian-optimization)
 
