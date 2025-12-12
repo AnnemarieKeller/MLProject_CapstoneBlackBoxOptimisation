@@ -19,6 +19,8 @@ These techniques remain relevant today for optimizing functions in **low-dimensi
 This repository implements a **Gaussian Process (GP) surrogate modeling framework** with diagnostic metrics to evaluate the "health" of the surrogate. The design ensures that the GP is **numerically stable, predictive uncertainty is well-calibrated, and hyperparameters are reasonable**, enabling robust Bayesian optimization or surrogate-based analysis.
 
 ---
+## General resources about GP : 
+https://hal.science/tel-03276426v1/file/DTIS21107.1619437629.pdf
 
 ## 1. Candidate Selection and Kernel Choices
 
