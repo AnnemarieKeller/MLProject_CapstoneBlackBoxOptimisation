@@ -20,7 +20,9 @@ This repository implements a **Gaussian Process (GP) surrogate modeling framewor
 
 ---
 ## General resources about GP : 
-https://hal.science/tel-03276426v1/file/DTIS21107.1619437629.pdf
+[Deep Gaussian Processes for the Analysis
+and Optimization of Complex Systems
+,Ali Hebbal](https://hal.science/tel-03276426v1/file/DTIS21107.1619437629.pdf)
 
 ## 1. Candidate Selection and Kernel Choices
 
