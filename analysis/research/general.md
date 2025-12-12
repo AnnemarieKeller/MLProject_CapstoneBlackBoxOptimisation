@@ -20,7 +20,10 @@ This repository implements a **Gaussian Process (GP) surrogate modeling framewor
 
 ---
 ## General resources about GP : 
-[Deep Gaussian Processes for the Analysis
+- [Gaussian Processes](https://krasserm.github.io/2018/03/19/gaussian-processes)
+- [Bayesian Optimisation](https://krasserm.github.io/2018/03/21/bayesian-optimization)
+
+- [Deep Gaussian Processes for the Analysis
 and Optimization of Complex Systems
 ,Ali Hebbal](https://hal.science/tel-03276426v1/file/DTIS21107.1619437629.pdf)
 
@@ -39,8 +42,10 @@ and Optimization of Complex Systems
 
 ### Kernel Selection
 
+
 | Reference | Description | RELEVANCE |
 |-----------|-------------|-----------------|
+|[Skit-learn - Gaussian Processes](https://scikit-learn.org/stable/modules/gaussian_process.html#basic-kernels) | write up on different  Kernel types| Provides a beginner-friendly explanation of GP kernels and their effect on predictive variance and mean. |
 | [Duvenaud, 2014](https://www.cs.toronto.edu/~duvenaud/cookbook/index.html) | Comprehensive kernel cookbook for GP regression. | Guides selection of kernels that balance flexibility and stability, important for hyperparameter reliability. |
 | [Stephenson et al., 2022](https://proceedings.mlr.press/v151/stephenson22a.html) | Discusses advanced kernel choices for stable GP predictions. | Supports reasoning for kernel choices that avoid ill-conditioning and overfitting. |
 | [Speekenbrink, Tutorial on GP Regression](https://discovery.ucl.ac.uk/id/eprint/10050029/1/Speekenbrink_Tutorial%20on%20Gaussian%20process%20regression.pdf) | Clear explanation of kernel influence on GP performance. | Provides a beginner-friendly explanation of GP kernels and their effect on predictive variance and mean. |
@@ -568,7 +573,7 @@ The goal of the project is submit input queries to 8 functions once per week and
 
 ## Function to be Explored and Literature Justification of Approach
 
-| Function   | Input Dim | Output Dim | Initial Sample Size | Optimization Goal | Sample Applications | Literature / Relevance |
+| Function   | Input Dim | Output Dim | Initial Sample Size | Optimization Goal | Summary Information | Literature / Relevance |
 |-----------|-----------|-----------|------------------|-----------------|------------------|----------------------|
 | Function 1 | 2 | 1 | 10 | Maximize | Detect likely contamination sources in a 2D area (e.g., radiation). BO tunes detection parameters for reliable identification. | Low-dimensional exploration; surrogate modeling in small datasets. Rasmussen & Williams, 2006 [GPML](http://www.gaussianprocess.org/gpml/) |
 | Function 2 | 2 | 1 | 10 | Maximize | Black-box function returning noisy log-likelihood scores. | Noise-aware Expected Improvement (EI) acquisition improves performance under heteroscedastic noise. Zhou et al., 2023 [arXiv:2310.05166](https://arxiv.org/abs/2310.05166) |
