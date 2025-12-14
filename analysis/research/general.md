@@ -20,13 +20,16 @@ This repository implements a **Gaussian Process (GP) surrogate modeling framewor
 
 ---
 ## General resources about GP : 
+- Best tutorial and explanation : [Jie Wang : An Intuitive Tutorial to Gaussian Process Regression](https://arxiv.org/abs/2009.10862) notebook: [Gaussian-Processes-Regression-Tutorial](https://colab.research.google.com/github/jwangjie/Gaussian-Processes-Regression-Tutorial/blob/master/gpr_tutorial.ipynb)
 - [Black Box Bayesian Optimisation - General Overview](https://wiki.ubc.ca/Black-Box_Optimization_using_Bayesian_Optimization)
 - [Gaussian Processes](https://krasserm.github.io/2018/03/19/gaussian-processes)
 - [Bayesian Optimisation](https://krasserm.github.io/2018/03/21/bayesian-optimization)
-
+- [ Power transform](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.power_transform.html)
+- [Transformation explained simply](https://medium.com/@richa.insights/power-transformation-explained-simply-box-cox-vs-yeo-johnson-with-visual-examples-in-python-d690990157f9)
 - [Deep Gaussian Processes for the Analysis
 and Optimization of Complex Systems
 ,Ali Hebbal](https://hal.science/tel-03276426v1/file/DTIS21107.1619437629.pdf)
+
 
 ## 1. Candidate Selection and Kernel Choices
 
