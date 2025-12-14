@@ -20,6 +20,7 @@ This repository implements a **Gaussian Process (GP) surrogate modeling framewor
 
 ---
 ## General resources about GP : 
+- [Bayesian Optimisation](https://bayesoptbook.com/book/bayesoptbook.pdf)
 - Best tutorial and explanation : [Jie Wang : An Intuitive Tutorial to Gaussian Process Regression](https://arxiv.org/abs/2009.10862) notebook: [Gaussian-Processes-Regression-Tutorial](https://colab.research.google.com/github/jwangjie/Gaussian-Processes-Regression-Tutorial/blob/master/gpr_tutorial.ipynb)
 - [Black Box Bayesian Optimisation - General Overview](https://wiki.ubc.ca/Black-Box_Optimization_using_Bayesian_Optimization)
 - [Gaussian Processes](https://krasserm.github.io/2018/03/19/gaussian-processes)
