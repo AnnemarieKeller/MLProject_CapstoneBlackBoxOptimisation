@@ -77,6 +77,15 @@ SVR (Support Vector Regression): Helps approximate non-linear or high-dimensiona
 | 8 – 8D ML Hyperparameters | UCB | Very high-dimensional; complex interactions among parameters; global exploration needed to find strong local maxima. |☑  | RBF |
 
 
+## Documentation
+
+To support transparency and reproducibility of the BBO Capstone Project, the following documentation is provided:
+
+- **Datasheet for Dataset:** Describes the structure, collection process, and intended uses of the weekly input-output datasets for the 8 black-box functions.  
+  [View Datasheet](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/Datasheet_BBO_Capstone.md)
+
+- **Model Card:** Summarises the optimisation approach used, including strategy, performance, assumptions, limitations, and ethical considerations.  
+  [View Model Card](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/ModelCard_BBO_Capstone.md)
 
 
 
