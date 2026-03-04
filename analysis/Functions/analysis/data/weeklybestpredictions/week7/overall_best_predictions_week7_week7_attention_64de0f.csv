@@ -1,0 +1,9 @@
+Function,Best Method,Acquisition,Acquisition Params,Best Y,Best X,Kernel,Kernel Params,GP Health,N Candidates,Iteration
+2D Contamination,EI,EI,N/A,-0.0001838381878959532,0.129721-0.903639,"Matern(length_scale=1, nu=1.5)",,0.4803052986121976,N/A,30
+2D Noisy Log-Likelihood,EI,EI,N/A,0.2662108091632785,0.008126-0.780440,"Matern(length_scale=1, nu=1.5)",,0.4493279177181769,N/A,3
+3D Drug Combination,UCB,UCB,N/A,-0.08003572957559066,0.590773-0.694583-0.230902,"RBF(length_scale=1) + Matern(length_scale=1, nu=1.5)",,0.48030492521911017,N/A,2
+4D Warehouse Placement,EI,EI,N/A,0.8833730452689483,0.392401-0.457402-0.431239-0.422653,1**2 * RBF(length_scale=1) + WhiteKernel(noise_level=0.001),,0.38741492108255354,N/A,24
+4D Chemical Yield,EI,EI,N/A,3932.9714664507055,0.039605-1.000000-1.000000-1.000000,RBF(length_scale=1),,0.3813512022887773,N/A,7
+5D Cake Recipe,PI,PI,N/A,-1.1165874965276301,0.215544-0.194873-0.293372-1.000000-0.000000,"RBF(length_scale=1) + Matern(length_scale=1, nu=1.5)",,0.42034835588415037,N/A,8
+6D ML Hyperparameters,EI,EI,N/A,2.1262910445628735,0.011177-0.219005-0.111727-0.173451-0.343083-0.550624,"RBF(length_scale=1) + Matern(length_scale=1, nu=1.5)",,0.4493263197667285,N/A,28
+ 8D ML Hyperparameters,UCB,UCB,N/A,10.03867064006909,0.135563-0.168434-0.094637-0.000000-0.700732-0.284686-0.189307-0.649097,1**2 * RBF(length_scale=1) + WhiteKernel(noise_level=0.001),,0.40438746437879186,N/A,28
