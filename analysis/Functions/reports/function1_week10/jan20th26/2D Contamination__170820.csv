@@ -1,0 +1,2 @@
+1,GP health,0.7678494883200796,-26.679306414699678,7.679429629718078e-09,73.7507324965268,2,0.6499999999999999,"['overconfidence', 'heteroscedasticity']"
+1,GP anomalies,Product,"{'k1': 1.07**2, 'k2': Matern(length_scale=[0.0246, 5.74e+05], nu=2.5), 'k1__constant_value': np.float64(1.1516629398843428), 'k1__constant_value_bounds': (0.001, 1000.0), 'k2__length_scale': array([2.46115633e-02, 5.74485164e+05]), 'k2__length_scale_bounds': (0.01, 1000000.0), 'k2__nu': 2.5}",2,0.6499999999999999,"['overconfidence', 'heteroscedasticity']"
