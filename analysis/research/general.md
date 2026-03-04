@@ -1,6 +1,6 @@
 This Project is for the Capstone Project which was modeled after NeurIPS 2020 Challenge
 
-# Modern Black-Box Optimization: Lessons from the NeurIPS 2020 Challenge
+# Modern Black-Box Optimization: NeurIPS 2020 Challenge
 
 The **NeurIPS 2020 Black-Box Optimization Challenge** benchmarked algorithms on realistic, noisy, and multimodal functions. It highlighted key innovations that shaped modern optimization:  
 
@@ -9,6 +9,7 @@ The **NeurIPS 2020 Black-Box Optimization Challenge** benchmarked algorithms on 
 - **Switching and multi-strategy optimization** for multimodal landscapes ([Squirrel optimizer by AutoML.org & IOHprofiler](https://www.iohprofiler.org/squirrel))  
 - **Local partitioned search for black-box functions** ([JetBrains Research approach](https://research.jetbrains.org/en/publications/solving-black-box-optimization-challenge-via-learning-search-space-partition))  
 - **Ensemble Bayesian optimization strategies** for high performance ([Du Xiaoman DI study](https://arxiv.org/abs/2105.02143))  
+
 - **Practical, reproducible BO frameworks** ([Optuna team BBO 2020 method](https://optuna.org/blog/black-box-optimization-challenge-2020))  
 
 These techniques remain relevant today for optimizing functions in **low-dimensional exploration, noisy evaluations, combinatorial settings, and real-world applications** such as contamination detection, likelihood maximization, and drug discovery.  
@@ -94,46 +95,7 @@ To ensure the GP predictive uncertainty is reliable:
 * Kuleshov et al., 2018 ([arXiv link](https://arxiv.org/abs/1807.00263))  
 * Gneiting & Katzfuss, *Probabilistic Forecasting*, 2014 ([link](https://www.annualreviews.org/doi/10.1146/annurev-statistics-062713-085831))  
 
-
-       ┌─────────────────────┐
-       │   Train GP on (X,y) │
-       └──────────┬──────────┘
-                  │
-        ┌─────────┴─────────┐
-        │ Predictive mean & │
-        │  standard deviation│
-        └─────────┬─────────┘
-                  │
-        ┌─────────┴─────────┐
-        │  Compute residuals │
-        │    (y - μ(x))      │
-        └─────────┬─────────┘
-                  │
-        ┌─────────┴─────────┐
-        │ Standardize        │
-        │ residuals z = r/σ  │
-        └─────────┬─────────┘
-                  │
-        ┌─────────┴─────────┐
-        │ Calibration test   │
-        │  z ~ N(0,1)?       │
-        └─────────┬─────────┘
-                  │
-        ┌─────────┴─────────┐
-        │ Residual pattern   │
-        │ Hyperparameter     │
-        │ stability checks   │
-        └─────────┬─────────┘
-                  │
-        ┌─────────┴─────────┐
-        │ Compute final GP   │
-        │     Health Score   │
-        └─────────┬─────────┘
-                  │
-            ┌─────┴─────┐
-            │ 0 ←→ 1     │
-            │ GP Health  │
-            └────────────┘
+![highlevelflow ](imgs/flows/flow1.2.jpg)
 
 
 
@@ -172,29 +134,71 @@ In addition to standard Bayesian optimization, our framework is compatible with 
 * Your GP health metrics and diagnostics therefore provide **direct support for reliable multimodal optimization**, aligning with the methods described in Wu et al., 2022.
 ### Function 2: Noise-Aware Expected Improvement (EI)
 
-Our planned implementation of Exploring Function 2 focuses on **enhancing the classical Expected Improvement (EI) acquisition function** to properly account for noisy observations.  
+## Exploring Function 2 (Noisy EI with UCB Incumbent)
 
-**Reference:**  
-[Zhou et al., 2023, Noise-Aware Expected Improvement in Bayesian Optimization](https://arxiv.org/abs/2310.05166)  
+The implementation of Exploring Function 2 focuses on enhancing the classical Expected Improvement (EI) acquisition function to better handle noisy observations by using a **UCB-based incumbent**.
 
-**Key Points:**
+### Key References for This Approach
 
-* Traditional EI uses the **best posterior mean** as the incumbent but often ignores the **uncertainty of that incumbent**, especially under noise.
-* Zhou et al. introduce a **corrected EI formula** that incorporates the **GP covariance structure**, maintaining analytic tractability while accounting for observation noise.
-* The method **specializes to classical EI** in the noise-free case, making it broadly applicable.
-* Empirical results demonstrate **improved convergence and reduced cumulative regret** in noisy settings.
+***Srinivas et al. (2010)** – *Gaussian Process Optimization in the Bandit Setting: No Regret and Experimental Design*  
+  Introduces the **GP-UCB acquisition**, which motivates using upper confidence bounds to handle noisy observations and uncertainty-aware exploration.  
+  This supports our use of a UCB-based incumbent:
+  \[
+  y_{\text{inc}} = \max(\mu + 1.96\,\sigma)
+  \]
 
-**Relevance to this framework:**
+* **Scott et al. (2011)** – *A Tutorial on Bayesian Optimization of Expensive Cost Functions*  
+  Provides practical guidance on noisy BO and discusses common heuristic modifications to EI, including using posterior mean or UCB-style incumbents when noise is present.
 
-* Accurate **GP predictions and calibrated uncertainties** are essential to make this noise-aware EI predictions reliable.
-  * Mis-calibrated GP predictive variance can mislead the acquisition function, selecting suboptimal points.
-  * Kernel instability or poorly conditioned covariance matrices can corrupt the analytic EI calculation.
-* By implementing our **GP health diagnostics**, we ensure that the GP surrogate is sufficiently trustworthy before applying noise-aware EI:
-  * Residuals and standardized residuals check that the GP is capturing the underlying function correctly.
-  * Hyperparameter sanity checks prevent extreme length scales or variances from biasing the acquisition function.
-  * Calibration scores provide confidence that predictive uncertainties are meaningful.
-* This ensures that predictions for Function 2 will behave **robustly in noisy or heteroscedastic environments**, aligning with the recommendations of Zhou et al., 2023.
+* **Wang et al. (2016)** – *Bayesian Optimization in the Presence of Noise*  
+  Reviews noisy BO strategies and provides theoretical and practical discussion on how EI and related acquisition functions behave under noise.
 
+### Implementation Summary
+
+As of now , the incumbent is defined using a UCB estimate:
+y_inc = max( μ(x_i) + 1.96 · σ(x_i) )
+
+The acquisition function then uses the classical EI formula with this adjusted incumbent:
+
+EI_UCB(x) = ( μ(x) − y_inc ) · Φ(z) + σ(x) · φ(z)
+
+where
+
+z = ( μ(x) − y_inc ) / σ(x)
+
+
+This is a **practical and computationally efficient** noisy EI variant commonly used in BO practice.
+
+---
+## Comparison to Zhou et al. (2023)
+
+Zhou et al. (2023) introduces a corrected noise-aware EI that explicitly models the uncertainty of the incumbent and the covariance structure of the GP.
+
+The corrected variance term becomes:
+
+σ̃²(x) = σ²(x) + σ²(x⁺) − 2 · Cov(x, x⁺)
+
+and the corrected EI is:
+
+EI_corr(x) = (μ(x) − μ(x⁺)) · Φ(z̃) + σ̃(x) · φ(z̃)
+
+where
+
+z̃ = (μ(x) − μ(x⁺)) / σ̃(x)
+
+
+### Key Differences
+
+| Feature | UCB incumbent |  corrected EI |
+|--------|-----------------------------|--------------------------|
+| Incumbent | UCB estimate y_inc = max(mu + 1.96*sigma) | Posterior mean incumbent mu(x+) with uncertainty |
+| Variance | Only candidate variance sigma(x) | Corrected variance tilde_sigma(x) including covariance |
+| Complexity | Simple, fast | More complex, needs covariance |
+| Noise handling | Heuristic | Principled and mathematically consistent |
+
+### Why Zhou et al. is Relevant
+
+Zhou et al. represents a more principled noise-aware EI formulation and is included here as a future enhancement. We plan to implement and evaluate it later to compare performance under strong noise.
 
 
 
@@ -408,8 +412,8 @@ with smooth decay for high-variance models. Score near 1 indicates a low average
 
 ###  About splitting / training vs. test residuals
 
-* If you compute `residuals = y_train - μ(X_train)`, then σ is already from the GP predictive distribution at those points. You **don’t** need to divide by anything extra — the standardization step is exactly `residual / σ`.
-* If you were doing residuals on a separate **test set**, same logic applies, but μ and σ would come from the GP predictions on that test set.
+* `residuals = y_train - μ(X_train)`, then σ is already from the GP predictive distribution at those points. No need to divide by anything extra — the standardization step is exactly `residual / σ`.
+* If residuals are applied on a separate **test set**, same logic applies, but μ and σ would come from the GP predictions on that test set.
 * Some references emphasize doing cross-validation for calibration, but the math of standardized residuals is the same: divide by predicted σ.
 
 **Source:** Rasmussen & Williams, Ch. 5 — “Predictions at training points versus new points” explains how predictive variance already accounts for conditioning on training data.
@@ -474,20 +478,8 @@ z_i = residual_i / σ_i
 
 ### ** Visual Diagram**
 
-```
-y_i  ┤
-     │      *
-     │     *
-     │    *
-μ_i  ┤---*------------------> x
-σ_i  ┤  (predicted std)
-residuals: y_i - μ_i
-standardized: z_i = residual / σ_i
-```
+![Residuals](imgs/residuals.png)
 
-* Stars (*) show true values scattered around the predicted mean.
-* The distance from μ_i shows the residual.
-* Dividing by σ_i normalizes this distance to “σ units” — producing z_i.
 
 ---
 
@@ -498,75 +490,8 @@ standardized: z_i = residual / σ_i
 
   * p ~ 1 → well-calibrated
   * p → 0 → poorly calibrated
+![flow](imgs/flows/flow4.2.jpg)
 
-                   ┌─────────────────────┐
-                   │   Train GP on (X,y) │
-                   └─────────┬──────────┘
-                             │
-             ┌───────────────┴────────────────┐
-             │ Predictive mean & std (μ, σ)   │
-             └───────────────┬────────────────┘
-                             │
-              ┌──────────────┴──────────────┐
-              │ Compute residuals:          │
-              │ residuals = y - μ           │
-              └──────────────┬──────────────┘
-                             │
-              ┌──────────────┴──────────────┐
-              │ Standardize residuals:      │
-              │ z = residual / σ            │
-              └──────────────┬──────────────┘
-                             │
-           ┌─────────────────┴─────────────────┐
-           │ Check calibration: z ~ N(0,1)     │
-           │ - Use normality test (normaltest) │
-           │ - High p-value → good calibration │
-           └──────────────┬───────────────────-┘
-                          │
-             ┌────────────┴────────────┐
-             │ Check residual patterns │
-             │ - autocorrelation of res│
-             │ - no strong patterns    │
-             └────────────┬────────────┘
-                          │
-             ┌────────────┴────────────┐
-             │ Check hyperparameter     │
-             │ stability: kernel params │
-             │- extreme values penalized│
-             └────────────┬────────────┘
-                          │
-             ┌────────────┴────────────┐
-             │ Compute final GP health │
-             │ score = weighted sum of │
-             │ calibration, stability, │
-             │ residual pattern        │
-             └────────────┬────────────┘
-                          │
-                   ┌──────┴───────┐
-                   │ GP health =  │
-                   │ 0 (bad) → 1  │
-                   │ (excellent)  │
-                   └──────────────┘
-                 ┌───────────────────┐
-                 │   GP Health Score │
-                 │   (0 = bad, 1=good│
-                 └─────────┬─────────┘
-                           │    
-                           │──────│
-                         this results in
-                  ┌───────────────┼───────────────┐
-           ┌──────▼──────┐ ┌──────▼─────┐  ┌──────▼──────┐
-           │ Calibration │ │ Hyperparam │  │ Residual    │
-           │ (50%)       │ │ Stability  │  │ Patterns    │
-           └──────┬──────┘ │ (30%)      │  │ (20%)       │
-                  │        └────────────┘  └─────────────┘
-                  │
-          ┌───────▼────────┐
-          │ Standardized   │
-          │ residuals z =  │
-          │ residuals/sigma│
-          │ normaltest(z)  │
-          └────────────────┘
 
 
 This works because, for a **well-calibrated GP**, the predictive distribution covers the true y-values with the predicted σ.
@@ -581,14 +506,16 @@ The goal of the project is submit input queries to 8 functions once per week and
 | Function   | Input Dim | Output Dim | Initial Sample Size | Optimization Goal | Summary Information | Literature / Relevance |
 |-----------|-----------|-----------|------------------|-----------------|------------------|----------------------|
 | Function 1 | 2 | 1 | 10 | Maximize | Detect likely contamination sources in a 2D area (e.g., radiation). BO tunes detection parameters for reliable identification. | Low-dimensional exploration; surrogate modeling in small datasets. Rasmussen & Williams, 2006 [GPML](http://www.gaussianprocess.org/gpml/) |
-| Function 2 | 2 | 1 | 10 | Maximize | Black-box function returning noisy log-likelihood scores. | Noise-aware Expected Improvement (EI) acquisition improves performance under heteroscedastic noise. Zhou et al., 2023 [arXiv:2310.05166](https://arxiv.org/abs/2310.05166) |
+| Function 2 | 2 | 1 | 10 | Maximize | Black-box function returning noisy log-likelihood scores. | Noisy EI using a UCB-based incumbent (practical noise-aware EI heuristic). | Srinivas et al., 2010; Scott et al., 2011; Wang et al., 2016 |
+
 | Function 3 | 3 | 1 | 15 | Maximize | Drug discovery testing combinations of three compounds; minimizing side effects via output transformation. | Low-dimensional combinatorial optimization; GP uncertainty propagation. Snoek et al., 2012 [arXiv:1206.2944](https://arxiv.org/abs/1206.2944) |
 
 
 ## Literature Insights
 
-1. **Multimodal Optimization**  
-   * Wang et al., 2022 ([arXiv:2210.06635](https://arxiv.org/pdf/2210.06635)) propose a multimodal Bayesian optimization framework using Gaussian processes, which analytically incorporates derivatives to locate multiple optima efficiently. This supports **Function 5**, where exploring the full peak landscape ensures optimal chemical process design.
+1. **Peak-Finding Optimization**
+   * Wang et al., 2022 ([arXiv:2210.06635](https://arxiv.org/pdf/2210.06635)) propose a Bayesian optimization framework that incorporates derivatives to efficiently locate optima. This is relevant to **Function 5**, which has a single dominant peak, because derivative-informed BO improves convergence to sharp maxima and reduces unnecessary exploration.
+
 
 2. **Noisy Objective Functions**  
    * Zhou et al., 2023 ([arXiv:2310.05166](https://arxiv.org/abs/2310.05166)) highlight that standard EI acquisition may neglect the uncertainty of the incumbent solution, especially in noisy settings. Their covariance-aware EI variant ensures robust exploration and exploitation, informing the design of **Function 2** optimization.
