@@ -422,13 +422,13 @@ with smooth decay for high-variance models. Score near 1 indicates a low average
 
 **In short:**
 
-* You calculate `residuals` as the difference between true and predicted mean.
+* Calculate `residuals` as the difference between true and predicted mean.
 * Dividing by `sigma` gives standardized residuals `z`.
 * Normality test on `z` tells you if the GP’s predictive uncertainty matches actual error.
-* No additional division or scaling is needed — the GP already provides the predictive standard deviation.
+* No additional division or scaling is needed as the the GP already provides the predictive standard deviation.
 
 
-visualize how residuals, sigma, and standardized residuals (`z`) work in Gaussian Process calibration.
+## Visualize how residuals, sigma, and standardized residuals (`z`) work in Gaussian Process calibration.
 
 ---
 
@@ -496,7 +496,7 @@ z_i = residual_i / σ_i
 
 
 
-This works because, for a **well-calibrated GP**, the predictive distribution covers the true y-values with the predicted σ.
+A **well-calibrated GP** has the predictive distribution cover the true y-values with the predicted σ.
 
 
 
@@ -509,7 +509,6 @@ The goal of the project is submit input queries to 8 functions once per week and
 |-----------|-----------|-----------|------------------|-----------------|------------------|----------------------|
 | Function 1 | 2 | 1 | 10 | Maximize | Detect likely contamination sources in a 2D area (e.g., radiation). BO tunes detection parameters for reliable identification. | Low-dimensional exploration; surrogate modeling in small datasets. Rasmussen & Williams, 2006 [GPML](http://www.gaussianprocess.org/gpml/) |
 | Function 2 | 2 | 1 | 10 | Maximize | Black-box function returning noisy log-likelihood scores. | Noisy EI using a UCB-based incumbent (practical noise-aware EI heuristic). | Srinivas et al., 2010; Scott et al., 2011; Wang et al., 2016 |
-
 | Function 3 | 3 | 1 | 15 | Maximize | Drug discovery testing combinations of three compounds; minimizing side effects via output transformation. | Low-dimensional combinatorial optimization; GP uncertainty propagation. Snoek et al., 2012 [arXiv:1206.2944](https://arxiv.org/abs/1206.2944) |
 
 
@@ -535,4 +534,4 @@ The goal of the project is submit input queries to 8 functions once per week and
 
 ## Summary
 
-> The benchmark functions cover a spectrum from low-dimensional to high-dimensional, noisy, and multimodal landscapes, mirroring real-world black-box optimization challenges. Literature from multimodal BO, noise-aware EI variants, and BBO competitions justifies the **use of Gaussian Process surrogates with health diagnostics** and informs **acquisition function choices**. This ensures a **robust, generalizable, and research-aligned optimization framework** suitable for both synthetic and applied tasks.
+> The functions in the challenge  cover a spectrum from low-dimensional to high-dimensional, noisy, and multimodal landscapes, mirroring real-world black-box optimization challenges. Literature from multimodal BO, noise-aware EI variants, and BBO competitions justifies the **use of Gaussian Process surrogates with health diagnostics** and informs **acquisition function choices**. This ensures a **robust, generalizable, and research-aligned optimization framework** suitable for predicting the inputs for the maximised outputs. 
