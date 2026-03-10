@@ -30,6 +30,8 @@ def get_weekly_inputs(functionNo, weekNo):
     base_func_folder = BASE_FUNC_FOLDER.format(functionNo=functionNo)
     initial_file = os.path.join(base_func_folder, "initial_inputs.npy")
     initial_inputs = [np.array(x, dtype=float) for x in np.load(initial_file, allow_pickle=True)]
+    if( weekNo == 0 ):
+        return initial_inputs
 
     # Load weekly data
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
@@ -54,7 +56,7 @@ def get_weekly_inputs(functionNo, weekNo):
 
                 # pick the correct function data
                 if functionNo - 1 < len(arrays):
-                    func_weekly_data.append(arrays[functionNo - 1])
+                   func_weekly_data.append(np.round(arrays[functionNo - 1].astype(float), 6))
 
                 block = ""
 
@@ -70,6 +72,9 @@ def get_weekly_outputs(functionNo, weekNo):
     initial_file = os.path.join(base_func_folder, "initial_outputs.npy")
     raw_initial = np.load(initial_file, allow_pickle=True)
     flat_initial = np.array(list(flatten(raw_initial)), dtype=float)
+    
+    if( weekNo == 0 ):
+        return flat_initial
 
     # --- Load weekly outputs ---
     updates_folder = BASE_UPDATES_FOLDER.format(weekNo=weekNo)
@@ -84,7 +89,7 @@ def get_weekly_outputs(functionNo, weekNo):
                 continue
             current_line += stripped
             if stripped.endswith("]"):
-                # --- Remove np.float64(...) ---
+                # --- Remove np.float64---
                 cleaned_line = re.sub(r"np\.float64\((.*?)\)", r"\1", current_line)
                 all_weeks_array.append(ast.literal_eval(cleaned_line))
                 current_line = ""

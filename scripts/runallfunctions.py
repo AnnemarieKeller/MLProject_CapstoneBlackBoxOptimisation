@@ -1,14 +1,15 @@
 from collections import defaultdict
 import numpy as np
 import scripts.configs.functionConfig as funcConfig
-from scripts.utils.generateX_Y import generate_data
+from scripts.utils.read_inputs_outputs import generate_data
 from scripts.week8strat import *
 from scripts.updatedweek8strat import *
 from scripts.utils.utils import save_weekly_results
 import random
 import string
 from collections import defaultdict
-from scripts.function5tryit import * 
+from scripts.function5tryit import *
+from scripts.function5 import *  
 
 
 def runallfunctions(weekno, externalref=None):
@@ -29,6 +30,9 @@ def runallfunctions(weekno, externalref=None):
     results = defaultdict(dict)
 
     for iter_num, cfg in funcConfig.FUNCTION_CONFIG.items():
+        # if iter_num < 7:
+        #     continue
+        
         print(f"Function {iter_num} -> {cfg['name']}, dim={cfg['dim']}, acquisition={cfg['acquisition']}")
 
         # Generate initial data
@@ -40,7 +44,10 @@ def runallfunctions(weekno, externalref=None):
         #     export_prefix=f"log_{externalref}_week{weekno}"
            
         # )  
+        # if iter_num == 1 : 
+        #     best_input, best_output, history, best_results = 
         best_input, best_output, history, best_results =   adaptive_bbo_weekly_strategy_updated(
+
             iter_num, cfg, X_train, y_train,
             export_prefix=f"upd{externalref}_week{weekno}"
            
@@ -69,7 +76,7 @@ def runallfunctions(weekno, externalref=None):
         }
 
     # Save CSV for all functions
-    save_weekly_results(results, weekno, f"week{weekno}_{externalref}")
+    save_weekly_results(results, weekno, f"{externalref}")
 
     # Print summary
     for iter_num, res in results.items():
@@ -77,16 +84,53 @@ def runallfunctions(weekno, externalref=None):
         best_method = max(res, key=lambda m: res[m]["best_y"])
         best_y = res[best_method]["best_y"]
         best_x = res[best_method]["best_x"]
-        print(f"Function {fname} -> Best method: {best_method}, best_y: {best_y:.6f}, best_x: {best_x}")
+        print(f"Function {fname}:  Best method: {best_method}, best_y: {best_y:.6f}, best_x: {best_x}")
 
     return results
 
 
 def runFunct5(week_no):
     X_train, y_train = generate_data(5,week_no)
-    adaptive_bbo_multi_peak(
-    X_train, y_train, num_iterations=30,
-    base_candidates=500, candidate_scale=200,
-    scale_candidates=False, random_state=42,
-    export_prefix="Adapted_length_bounds_funct5"
-    )
+    print(X_train)
+    print(y_train)
+    cfg = FUNCTION_CONFIG[5] 
+    best_input, best_output, history, best_results= adaptive_bbo_self_discovery(X_train, y_train,cfg, 30, base_candidates=500, candidate_scale=200,
+
+                         scale_candidates=False, random_state=42,
+                        export_prefix="bo_weekly")
+    # adaptive_bbo_multi_peak(
+    # X_train, y_train, num_iterations=30,
+    # base_candidates=500, candidate_scale=200,
+    # scale_candidates=False, random_state=42,
+    # export_prefix="Adapted_localscale_funct5"
+    # )
+    print(f"Function finished. Best output: {best_output} Best Input {best_input}")
+
+def runFunct4(week_no):
+        X_train, y_train = generate_data(4,week_no)
+        print(X_train)
+        print(y_train)
+        cfg = FUNCTION_CONFIG[4] 
+    # adaptive_bbo_self_discovery(X_train, y_train,cfg, 30, base_candidates=500, candidate_scale=200,
+    #                      scale_candidates=False, random_state=42,
+    #                     export_prefix="bo_weekly")
+        best_input, best_output, history, best_results = adaptive_bbo_multi_peak(
+        X_train, y_train, num_iterations=30,
+        base_candidates=500, candidate_scale=200,
+        scale_candidates=False, random_state=42,
+        export_prefix="Adapted_localscale_funct4"
+        )
+        print(f"Function finished. Best output: {best_output} Best Input {best_input}")
+
+def runFunct1(week_no):
+        results = defaultdict(dict)
+        X_train, y_train = generate_data(1,week_no)
+        print(X_train)
+        print(y_train)
+        from scripts.week10_fucnt1 import week10_funct1
+        from scripts.week9_function1 import week9_funct1
+        best_input, best_output, history, best_results =week10_funct1(1,funcConfig.FUNCTION_CONFIG[1], X_train, y_train)
+        print(f"Function finished. Best output: {best_output} Best Input {best_input}")
+        best_input, best_output, history, best_results= week9_funct1(1,funcConfig.FUNCTION_CONFIG[1], X_train, y_train)
+        print(f"Function finished. Best output: {best_output} Best Input {best_input}")
+

@@ -13,6 +13,33 @@ from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
 from scripts.utils.logging.logger import *
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+
+# Get a base stylesheet
+styles = getSampleStyleSheet()
+
+# --- Add custom styles your report expects ---
+
+# Section header style (used in make_table and image sections)
+styles.add(ParagraphStyle(
+    name="SectionHeader",
+    parent=styles["Heading2"],
+    fontSize=14,
+    leading=18,
+    spaceBefore=12,
+    spaceAfter=6,
+    textColor=colors.HexColor("#003366")
+))
+
+# Normal justify style (used for table body text)
+styles.add(ParagraphStyle(
+    name="NormalJustify",
+    parent=styles["Normal"],
+    alignment=1,               # 0:left, 1:center, 2:right, 4:justify
+    spaceAfter=4,
+))
+
 
 # ---------- Utilities ----------
 def fig_to_base64(fig):
@@ -37,6 +64,16 @@ def build_styles():
     styles.add(ParagraphStyle(name="Small", fontSize=8, leading=10, alignment=4))
     return styles
 
+def make_feature_table(iteration, values, feature_names, method, styles):
+    if values is None or len(values) == 0:
+        return [Paragraph(f"No {method} values available for iteration {iteration}", styles["Normal"])]
+    rows = [["Feature", f"{method} Value"]]
+    for f, v in zip(feature_names, values):
+        rows.append([f, f"{v:.5f}"])
+    return make_table(f"Iteration {iteration} - {method} Values", rows, styles)
+
+
+
 def make_table(title, rows, styles, col_widths=None):
     header = [Paragraph(f"<b>{title}</b>", styles["SectionHeader"])]
     table_data = [[Paragraph("<b>"+str(c)+"</b>", styles["NormalJustify"]) for c in rows[0]]]
@@ -52,19 +89,40 @@ def make_table(title, rows, styles, col_widths=None):
         ("VALIGN", (0,0), (-1,-1), "TOP"),
     ]))
     return [header, table, Spacer(1, 12)]
+from reportlab.lib.styles import getSampleStyleSheet
+
+def safe_get_style(styles, key):
+    try:
+        return styles[key]
+    except KeyError:
+        return styles["Normal"]  # fallback
 
 def make_image_section(title, img_b64, styles, text=None):
-    section = [Paragraph(title, styles["SectionHeader"])]
+    # use safe_get_style instead of styles["SectionHeader"]
+    section = [Paragraph(title, safe_get_style(styles, "SectionHeader"))]
     if img_b64:
         img_bytes = base64.b64decode(img_b64)
         img = Image(io.BytesIO(img_bytes))
-        img._restrictSize(14*cm, 8*cm)
+        img.drawHeight = 4*cm
+        img.drawWidth = 6*cm
         section.append(img)
-        section.append(Spacer(1, 6))
     if text:
-        section.append(Paragraph(text.replace("\n","<br/>"), styles["NormalJustify"]))
-        section.append(Spacer(1, 12))
+        section.append(Paragraph(text, safe_get_style(styles, "Normal")))
+    section.append(Spacer(1, 10))
     return section
+
+# def make_image_section(title, img_b64, styles, text=None):
+#     section = [Paragraph(title, styles["SectionHeader"])]
+#     if img_b64:
+#         img_bytes = base64.b64decode(img_b64)
+#         img = Image(io.BytesIO(img_bytes))
+#         img._restrictSize(14*cm, 8*cm)
+#         section.append(img)
+#         section.append(Spacer(1, 6))
+#     if text:
+#         section.append(Paragraph(text.replace("\n","<br/>"), styles["NormalJustify"]))
+#         section.append(Spacer(1, 12))
+#     return section
 
 def plot_gp_health(gp_health_history):
     fig, ax = plt.subplots(figsize=(5,3))
@@ -107,6 +165,22 @@ def plot_pca_candidates(history_X):
     img_b64 = fig_to_base64(fig)
     plt.close(fig)
     return img_b64
+def plot_feature_importance(values, title, feature_names=None):
+    """Create a horizontal bar chart of SHAP/LIME values."""
+    feature_names = feature_names or [f"x{i}" for i in range(len(values))]
+    fig, ax = plt.subplots(figsize=(6,3))
+    y_pos = np.arange(len(values))
+    ax.barh(y_pos, values, color="#800080", alpha=0.7)
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(feature_names)
+    ax.invert_yaxis()
+    ax.set_xlabel("Contribution")
+    ax.set_title(title)
+    plt.tight_layout()
+    img_b64 = fig_to_base64(fig)
+    plt.close(fig)
+    return img_b64
+
 
 # ---------- Main Report Function ----------
 def generate_pro_report1(func_id, gp_health_history, acq_history, history_X, history_y,
@@ -252,14 +326,44 @@ def generate_pro_report(function_id,
 
     # ---------- Setup ----------
     folder_name = make_date_folder()
-    save_dir = os.path.join(save_dir, folder_name, "reports")
+    save_dir = os.path.join("analysis/Functions/reports", folder_name, "reports")
+
+    # save_dir = os.path.join(save_dir, folder_name, "reports")
     os.makedirs(save_dir, exist_ok=True)
 
     timestamp = datetime.now().strftime("%b%d_%y_%H%M%S").lower()
     report_file = os.path.join(save_dir, f"function_{function_id}_report{timestamp}.pdf")
-
     styles = getSampleStyleSheet()
+
+# Add the custom styles your report expects
+    styles.add(ParagraphStyle(
+    name="SectionHeader",
+    parent=styles["Heading2"],
+    fontSize=14,
+    leading=18,
+    spaceBefore=12,
+    spaceAfter=6,
+    textColor=colors.HexColor("#003366")
+))
+
+    styles.add(ParagraphStyle(
+    name="NormalJustify",
+    parent=styles["BodyText"],
+    alignment=4,   # 4 = justify 
+    fontSize=9,
+    leading=11
+))
+
+    styles.add(ParagraphStyle(
+    name="Small",
+    parent=styles["BodyText"],
+    fontSize=8,
+    leading=10,
+    alignment=4
+))
+
     normal = styles["BodyText"]
+
 
     # Wrapped text style
     wrap_style = ParagraphStyle(
@@ -407,7 +511,94 @@ def generate_pro_report(function_id,
 
         elements.append(table)
         elements.append(Spacer(1, 10))
+    # ======================================================================
+#   LOO SUMMARY (optional)
+# ======================================================================
+# Check if LOO exists
+    if any("loo_mse" in iah for iah in iteration_acq_history):
+
+        elements.append(Paragraph("LOO MSE Summary", styles['Heading2']))
+
+        loo_table = [["Iteration", "LOO MSE"]]
+
+        for iah in iteration_acq_history:
+            if "loo_mse" in iah:
+                loo_table.append([
+                Paragraph(str(iah["iteration"]), wrap_style),
+                Paragraph(f"{iah['loo_mse']:.6f}", wrap_style)
+            ])
+
+        table = Table(loo_table, colWidths=[3*cm, 4*cm])
+        table.setStyle(TableStyle([
+        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
+        ("BACKGROUND", (0,0), (-1,0), colors.lightgrey),
+        ("FONTNAME", (0,0), (-1,0), "Helvetica-Bold"),
+        ("LEFTPADDING", (0,0), (-1,-1), 4),
+        ("RIGHTPADDING", (0,0), (-1,-1), 4),
+        ("TOPPADDING", (0,0), (-1,-1), 4),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 4),
+    ]))
+
+        elements.append(table)
+        elements.append(Spacer(1, 18))
+
+# ------------------------------------------------------------------
+# SHAP & LIME Explanations
+# ------------------------------------------------------------------
+
+    elements.append(Paragraph("Feature Explanations (SHAP / LIME)", styles['Heading2']))
+
+    for iah in iteration_acq_history:
+        iteration = iah["iteration"]
+        shap_vals = iah.get("shap_values")
+        lime_vals = iah.get("lime_explanation")
+
+    # determine feature names length
+        if shap_vals is not None:
+            feature_names = [f"x{i}" for i in range(len(shap_vals))]
+        elif lime_vals is not None:
+            feature_names = [f"x{i}" for i in range(len(lime_vals))]
+        else:
+            feature_names = []
+
+    # SHAP image (extend not append)
+        if shap_vals is not None:
+            img_b64 = plot_feature_importance(shap_vals,
+                     f"Iteration {iteration} - SHAP", feature_names)
+            elements.extend( make_image_section(
+            f"Iteration {iteration} - SHAP", img_b64, styles) )
+
+    # LIME image (extend)
+        if lime_vals is not None:
+            img_b64 = plot_feature_importance(lime_vals,
+                     f"Iteration {iteration} - LIME", feature_names)
+            elements.extend( make_image_section(
+            f"Iteration {iteration} - LIME", img_b64, styles) )
+
+    # SHAP table (extend)
+        if shap_vals is not None:
+            elements.extend( make_feature_table(
+            iteration, shap_vals, feature_names, "SHAP", styles) )
+
+    # LIME table (extend)
+        if lime_vals is not None:
+            elements.extend( make_feature_table(
+            iteration, lime_vals, feature_names, "LIME", styles) )
 
     # ---------- Save PDF ----------
+    elements =flatten_flowables(elements)
     doc.build(elements)
     print(f"Report saved: {report_file}")
+
+
+def flatten_flowables(lst):
+    """
+    Flatten a nested list of flowables into a single list.
+    """
+    flat = []
+    for item in lst:
+        if isinstance(item, list):
+            flat.extend(flatten_flowables(item))
+        else:
+            flat.append(item)
+    return flat
