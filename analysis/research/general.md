@@ -1,4 +1,4 @@
-This Project is for the Capstone Project which was modeled after NeurIPS 2020 Challenge
+This Project is for the Capstone Project of the Imperial Professional AI and Machine Learning cerficate , which was modeled after NeurIPS 2020 Challenge
 
 # Modern Black-Box Optimization: NeurIPS 2020 Challenge
 
@@ -12,7 +12,7 @@ The **NeurIPS 2020 Black-Box Optimization Challenge** benchmarked algorithms on 
 
 - **Practical, reproducible BO frameworks** ([Optuna team BBO 2020 method](https://optuna.org/blog/black-box-optimization-challenge-2020))  
 
-These techniques remain relevant today for optimizing functions in **low-dimensional exploration, noisy evaluations, combinatorial settings, and real-world applications** such as contamination detection, likelihood maximization, and drug discovery.  
+The competion outcome greatly influenced many techniques that remain relevant today for optimizing functions in **low-dimensional exploration, noisy evaluations, combinatorial settings, and real-world applications** such as contamination detection, likelihood maximization, and drug discovery.  While the solution presented in this capstone project is not as advanced as the top methods from the competition, it incorporates several of the key ideas explored in the challenge.
 
 
 # Gaussian Process Surrogate Framework and GP Health Metrics 
@@ -83,7 +83,7 @@ To ensure the GP predictive uncertainty is reliable:
 * **Standardized residuals:** Residuals divided by predicted standard deviation; unitless and expected to follow a standard normal if the GP is well-calibrated.  
 * **Calibration test:** Statistical tests for normality (e.g., D’Agostino-Pearson) verify whether the predictive distribution matches observed deviations.  
 
-**Key Points for Users**
+**Key Points**
 
 * Standardization accounts for GP uncertainty; no extra scaling is needed.  
 * Works on training or test sets; predictive standard deviations are used appropriately.  
@@ -95,7 +95,7 @@ To ensure the GP predictive uncertainty is reliable:
 * Kuleshov et al., 2018 ([arXiv link](https://arxiv.org/abs/1807.00263))  
 * Gneiting & Katzfuss, *Probabilistic Forecasting*, 2014 ([link](https://www.annualreviews.org/doi/10.1146/annurev-statistics-062713-085831))  
 
-![highlevelflow ](imgs/flows/flow1.2.jpg)
+![highlevelflow ](../../imgs/flows/flow1.2.jpg)
 
 
 
@@ -422,13 +422,13 @@ with smooth decay for high-variance models. Score near 1 indicates a low average
 
 **In short:**
 
-* You calculate `residuals` as the difference between true and predicted mean.
+* Calculate `residuals` as the difference between true and predicted mean.
 * Dividing by `sigma` gives standardized residuals `z`.
 * Normality test on `z` tells you if the GP’s predictive uncertainty matches actual error.
-* No additional division or scaling is needed — the GP already provides the predictive standard deviation.
+* No additional division or scaling is needed as the the GP already provides the predictive standard deviation.
 
 
-visualize how residuals, sigma, and standardized residuals (`z`) work in Gaussian Process calibration.
+## Visualize how residuals, sigma, and standardized residuals (`z`) work in Gaussian Process calibration.
 
 ---
 
@@ -442,7 +442,7 @@ GP predictive std:      σ_i
 
 ---
 
-### ** Residual**
+### **Residual**
 
 ```
 residual_i = y_i - μ_i
@@ -476,25 +476,27 @@ z_i = residual_i / σ_i
 
 ---
 
-### ** Visual Diagram**
+### Visual Diagram
 
-![Residuals](imgs/residuals.png)
+![Residuals](../../imgs/residuals.png)
 
 
 ---
 
-### **Testing Calibration**
+### Testing Calibration
 
 * Take all z_i across training/test points.
 * Use `normaltest` or another normality test:
 
   * p ~ 1 → well-calibrated
   * p → 0 → poorly calibrated
-![flow](imgs/flows/flow4.2.jpg)
+ 
+    
+![flow](../../imgs/flows/flow4.2.jpg)
 
 
 
-This works because, for a **well-calibrated GP**, the predictive distribution covers the true y-values with the predicted σ.
+A **well-calibrated GP** has the predictive distribution cover the true y-values with the predicted σ.
 
 
 
@@ -507,7 +509,6 @@ The goal of the project is submit input queries to 8 functions once per week and
 |-----------|-----------|-----------|------------------|-----------------|------------------|----------------------|
 | Function 1 | 2 | 1 | 10 | Maximize | Detect likely contamination sources in a 2D area (e.g., radiation). BO tunes detection parameters for reliable identification. | Low-dimensional exploration; surrogate modeling in small datasets. Rasmussen & Williams, 2006 [GPML](http://www.gaussianprocess.org/gpml/) |
 | Function 2 | 2 | 1 | 10 | Maximize | Black-box function returning noisy log-likelihood scores. | Noisy EI using a UCB-based incumbent (practical noise-aware EI heuristic). | Srinivas et al., 2010; Scott et al., 2011; Wang et al., 2016 |
-
 | Function 3 | 3 | 1 | 15 | Maximize | Drug discovery testing combinations of three compounds; minimizing side effects via output transformation. | Low-dimensional combinatorial optimization; GP uncertainty propagation. Snoek et al., 2012 [arXiv:1206.2944](https://arxiv.org/abs/1206.2944) |
 
 
@@ -533,4 +534,4 @@ The goal of the project is submit input queries to 8 functions once per week and
 
 ## Summary
 
-> The benchmark functions cover a spectrum from low-dimensional to high-dimensional, noisy, and multimodal landscapes, mirroring real-world black-box optimization challenges. Literature from multimodal BO, noise-aware EI variants, and BBO competitions justifies the **use of Gaussian Process surrogates with health diagnostics** and informs **acquisition function choices**. This ensures a **robust, generalizable, and research-aligned optimization framework** suitable for both synthetic and applied tasks.
+> The functions in the challenge  cover a spectrum from low-dimensional to high-dimensional, noisy, and multimodal landscapes, mirroring real-world black-box optimization challenges. Literature from multimodal BO, noise-aware EI variants, and BBO competitions justifies the **use of Gaussian Process surrogates with health diagnostics** and informs **acquisition function choices**. This ensures a **robust, generalizable, and research-aligned optimization framework** suitable for predicting the inputs for the maximised outputs. 

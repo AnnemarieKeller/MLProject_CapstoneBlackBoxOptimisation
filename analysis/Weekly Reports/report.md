@@ -265,34 +265,60 @@ A Gaussian Process surrogate model was used to predict outputs and guide input s
 | **Function 8** | High-dimensional, complex but not noisy; repeated inputs confirmed consistency. |
 
 **Function Landscapes:**  
-Individual 13-week function landscapes are available in the repo (`analysis/landscape.ipynb`) for reference.
-here are example for function 5 through week 1 - 13: 
+Individual 13-week function landscape representations are available in the repo (`analysis/landscape.ipynb`) for reference.
+here examples for function 5 through week 1 - 13 of the experiment: 
+
 **Week 1**
-![week 1 Function 5](imgs/landscapes/function5_landscape_w1.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w1.png" width="60%">
+
 **Week 2**
-![week 2 Function 5](imgs/landscapes/function5_landscape_w2.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w2.png" width="60%">
+
 **Week 3**
-![week 3 Function 5](imgs/landscapes/function5_landscape_w3.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w3.png" width="60%">
+
 **Week 4**
-![week 4 Function 5](imgs/landscapes/function5_landscape_w4.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w4.png" width="60%">
+
 **Week 5**
-![week 5 Function 5](imgs/landscapes/function5_landscape_w5.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w5.png" width="60%">
+
 **Week 6**
-![week 6 Function 5](imgs/landscapes/function5_landscape_w6.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w6.png" width="60%">
+
 **Week 7**
-![week 7 Function 5](imgs/landscapes/function5_landscape_w7.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w7.png" width="60%">
+
 **Week 8**
-![week 8 Function 5](imgs/landscapes/function5_landscape_w8.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w8.png" width="60%">
+
 **Week 9**
-![week 9 Function 5](imgs/landscapes/function5_landscape_w9.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w9.png" width="60%">
+
 **Week 10**
-![week 10 Function 5](imgs/landscapes/function5_landscape_w10.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w10.png" width="60%">
+
 **Week 11**
-![week 11 Function 5](imgs/landscapes/function5_landscape_w11.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w11.png" width="60%">
+
 **Week 12**
-![week 12 Function 5](imgs/landscapes/function5_landscape_w12.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w12.png" width="60%">
+
 **Week 13**
-![week 13 Function 5](imgs/landscapes/function5_landscape_w13.png)
+
+<img src="../../imgs/landscapes/function5/function5_landscape_w13.png" width="60%">
 ---
 
 ## Key Takeaways
@@ -303,7 +329,7 @@ here are example for function 5 through week 1 - 13:
 - Adaptive kernel lengths improve handling of diverse landscapes.  
 - Manual interventions validate assumptions and prevent missing peaks.  
 - Interpretability (SHAP, LIME) enhances trust and debugging.  
-- **Weekly strategy adaptation** is essential for handling noisy, high-dimensional, or multimodal functions.
+
 
 ---
 
@@ -313,7 +339,7 @@ here are example for function 5 through week 1 - 13:
 - **SVR notebook:** [SVR](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/svr.ipynb)  
 - **Random Forest notebook:** [RF](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/rainforestsurrogate.ipynb)  
 - **Neural Network notebook:** [NN](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/neuralnetworks.ipynb)  
-- **Optimization pipeline / final GP scripts:** [OptimizationPipeline.ipynb](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/functions/dynamicloop.ipynb)  
+- **Optimization pipeline / final GP scripts:** [notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/functions/dynamicloop.ipynb)  
 - **Weekly results:** [WeeklyResults.ipynb](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/WeeklyResults.ipynb)  
 - **Datasheet:** [datasheet.md](docs/datasheet.md)  
 - **Model card:** [model_card.md](docs/model_card.md)
