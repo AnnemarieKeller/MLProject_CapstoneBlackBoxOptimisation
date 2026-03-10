@@ -52,7 +52,7 @@ Additional goals included:
 
 - Project can be run from this [notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/runfunctions.ipynb)
 - Logs will be [here](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/tree/main/analysis/Functions/analysis/data/weeklybestpredictions/logs)
-- Automatically generated Run reports will be found [here](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/tree/architecture/analysis/Functions/reports) (select the runreport name folder given as a parameter) 
+- Automatically generated Run reports will be found [here](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/tree/main/analysis/Functions/reports) (select the runreport name folder given as a parameter) 
 
 
 ---
@@ -113,7 +113,7 @@ The workflow consists of:
 
 A detailed explanation of the optimisation workflow, modelling choices, and supporting diagrams can be found in the **Concepts and Methodologies Overview**:
 
-- [Diagrams and Technical Justification of Approach](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
+- [Diagrams and Technical Justification of Approach](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/research/general.md)
 
 ---
 ## Hyperparameter Tuning & Strategy Selection
@@ -202,7 +202,7 @@ To support transparency and reproducibility of the BBO Capstone Project, the fol
   [View Model Card](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/modelcard.md)
 - **Concepts and Methodologies Overview**  
   Provides an overview of Bayesian optimisation concepts, modelling approaches, and workflow diagrams used in the project.  
-  [View Technical Approach](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
+  [View Technical Approach](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/research/general.md)
 
 - **Starting Information**  
   [View Initial Information](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/Overview/startingpoint.md)
