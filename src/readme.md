@@ -57,6 +57,7 @@ From the `src` folder, run:
 
 ```bash
 python main.py
+```
 
 
 
