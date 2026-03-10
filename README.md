@@ -50,7 +50,7 @@ Additional goals included:
 
 
 - Python 3.11 and Jupyter installation required
-- Install imports from this [notebook] (https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/imports.ipynb)
+- Install imports from this [notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/imports.ipynb)
 - Project can be run from this [notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/runfunctions.ipynb)
 - Logs will be [here](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/tree/main/analysis/Functions/analysis/data/weeklybestpredictions/logs)
 - Automatically generated Run reports will be found [here](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/tree/main/analysis/Functions/reports) (select the runreport name folder given as a parameter) 
