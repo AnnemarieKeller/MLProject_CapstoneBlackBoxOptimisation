@@ -8,75 +8,13 @@ import scripts.configs.functionConfig as funcConfig
 def set_alpha(y_train):
     """Automatically determine alpha from y scale
     """
+# Automatically determine alpha from y scale
 
-    y_range = np.max(y_train) - np.min(y_train)
+    y_range = np.std(y_train)
     alpha = max(1e-6, 1e-4 * y_range)
     return alpha  # small fraction of y range
-
-
-# def save_weekly_results(results, weekno, name="experiment"):
-#     # define output directory (relative to project root or script path)
-#     out_dir = os.path.join("analysis", "data", "weeklybestpredictions",f"week{weekno}")
-#     # create the directory tree if it doesn't exist (safe if already exists)
-#     os.makedirs(out_dir, exist_ok=True)
-  
-
-#     short_id = uuid.uuid4().hex[:6]  
-
-#     fname = f"overall_best_predictions_week{weekno}_{name}_{short_id}.csv"
-#     out_path = os.path.join(out_dir, fname)
-
-
-#     rows = []
-
-
-#     for iter_num, res in results.items():
-#         fname = funcConfig.FUNCTION_CONFIG[iter_num]["name"]
-#         best_method = max(res, key=lambda m: res[m]["best_y"])
-#         best_y = res[best_method]["best_y"]
-#         best_x = res[best_method]["best_x"]
-
-#     # Find iteration that produced best_y
-#         best_iter = max(res[best_method]["best_results"], key=lambda r: r["best_output"])
-    
-#         kernel = best_iter.get("kernel", "N/A")
-#         kernel_params = best_iter.get("kernel_params", {})
-#         gp_health = best_iter.get("gp_health", "N/A")
-#         n_candidates = best_iter.get("n_candidates", "N/A")
-#         iteration = best_iter.get("iteration", "N/A")
-
-#     # Acquisition-specific parameters
-#         acq_params = {}
-#         if best_iter["acquisition"].upper() == "UCB":
-#             acq_params["kappa"] = best_iter.get("kappa", "N/A")
-#         elif best_iter["acquisition"].upper() == "EI":
-#             acq_params["gamma"] = best_iter.get("gamma", "N/A")
-#         elif best_iter["acquisition"].upper() == "PI":
-#             acq_params["eta"] = best_iter.get("eta", "N/A")
-    
-#     # Flatten input and kernel params for CSV
-#         row = {
-#         "Function": fname,
-#         "Best Method": best_method,
-#         "Best Y": best_y,
-#         "Best X": "-".join([f"{v:.6f}" for v in best_x]),
-#         "Kernel": kernel,
-#         "Kernel Params": ", ".join([f"{k}={v}" for k, v in kernel_params.items()]),
-#         "GP Health": gp_health,
-#         "N Candidates": n_candidates,
-#         "Iteration": iteration,
-#         "Acquisition Params": ", ".join([f"{k}={v}" for k,v in acq_params.items()])
-#         }
-
-#         rows.append(row)
-
-
-# # Convert to DataFrame and save as CSV
-#     df = pd.DataFrame(rows)
-#     df.to_csv(out_path, index=False)
-#     print("CSV file '{fname}.csv' created.")
 def save_weekly_results(results, weekno, name="experiment"):
-    import os, uuid, pandas as pd
+
 
     # -------------------------
     # Create output directory
@@ -153,7 +91,6 @@ def save_weekly_results(results, weekno, name="experiment"):
         row = {
             "Function": func_name,
             "Best Method": best_method,              # EI / UCB / PI / THOMPSON
-            "Acquisition": acq_name,                 # name stored in best_iter
             "Acquisition Params": acq_params_str,    # kappa=..., gamma=..., etc.
             "Best Y": best_y,
             "Best X": "-".join([f"{v:.6f}" for v in best_x]) if best_x is not None else "N/A",

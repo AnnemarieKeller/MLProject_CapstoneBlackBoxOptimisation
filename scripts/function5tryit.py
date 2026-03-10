@@ -9,9 +9,10 @@ from scripts.utils.reports.reportbuilder import generate_pro_report
 from scripts.analysis.gphealth import gp_health_score
 from scripts.utils.logging.logger import * 
 from scripts.configs.functionConfig import *
-from scripts.candidateGeneration import * 
+from scripts.exploration.candidateGeneration import * 
+from scripts.exploration.accquistions import * 
 
-def build_hybridRBF_kernel_safe(X_train, nu_list=[1.5, 2.5], noise_level=1e-3):
+def build_hybridRBF_kernel_safe(X_train, nu_list=[1.5, 2.5], noise_level=1e-1):
     """Build additive and multiplicative RBF+Matern hybrid kernels safely for multi-dim input."""
     dim = X_train.shape[1]
     n_samples = X_train.shape[0]
@@ -25,7 +26,8 @@ def build_hybridRBF_kernel_safe(X_train, nu_list=[1.5, 2.5], noise_level=1e-3):
     length_init = np.ones(dim) * avg_dist
     # bounds per dim
     lb = np.full(dim, avg_dist / 100)
-    ub = np.full(dim, avg_dist * 50)
+    # ub = np.full(dim, avg_dist * 300)
+    ub = np.full(dim, avg_dist * 1000)
     length_init = np.ones(dim) * avg_dist
 
 
@@ -36,7 +38,8 @@ def build_hybridRBF_kernel_safe(X_train, nu_list=[1.5, 2.5], noise_level=1e-3):
     hybrid_kernels = []
     for nu in nu_list:
         # additive hybrid
-        k_add = C(1.0, (1e-3, 1e3)) * (
+        # k_add = C(1.0, (1e-3, 1e3)) * (
+        k_add = C(1.0, (1e-5, 1e8)) * (
             RBF(length_scale=length_init, length_scale_bounds=length_bounds) +
             Matern(length_scale=length_init, length_scale_bounds=length_bounds, nu=nu)
         ) + WhiteKernel(noise_level=noise_level, noise_level_bounds=(1e-4, 1e1))
@@ -53,26 +56,8 @@ def build_hybridRBF_kernel_safe(X_train, nu_list=[1.5, 2.5], noise_level=1e-3):
 
     return hybrid_kernels
 
-# def generate_multi_peak_candidates(gp, X_train_scaled, n_candidates=500, top_k_peaks=5, local_scale=0.05, input_dim=None, random_state=42):
-#     np.random.seed(random_state)
-#     # global uniform candidates
-#     X_global = np.random.uniform(0,1,size=(n_candidates,input_dim))
 
-#     # local candidates around top predicted peaks
-#     mu_all, sigma_all = gp.predict(X_train_scaled, return_std=True)
-#     ucb = mu_all + 2.0*sigma_all
-#     top_idx = np.argsort(ucb.ravel())[-top_k_peaks:]
-#     X_local_list = []
-#     for idx in top_idx:
-#         peak = X_train_scaled[idx]
-#         X_local = peak + local_scale * np.random.randn(n_candidates//top_k_peaks, input_dim)
-#         X_local = np.clip(X_local, 0, 1)
-#         X_local_list.append(X_local)
-#     X_local = np.vstack(X_local_list)
-#     X_candidates = np.vstack([X_global, X_local])
-#     return X_candidates
-
-def adaptive_bbo_multi_peak(X_init, y_init, num_iterations=30,
+def adaptive_bbo_multi_peak(X_init, y_init,cfg, num_iterations=30,
                             base_candidates=500, candidate_scale=200,
                             scale_candidates=False, random_state=42,
                             export_prefix="bo_multi_peak"):
@@ -80,14 +65,14 @@ def adaptive_bbo_multi_peak(X_init, y_init, num_iterations=30,
     input_dim = X_init.shape[1]
     log_dir = os.path.join("reports", export_prefix)
     os.makedirs(log_dir, exist_ok=True)
-    cfg = FUNCTION_CONFIG[5]
+    # cfg = FUNCTION_CONFIG[4]
 
     start_log(cfg,export_prefix=export_prefix)
 
 
 
     # --------------------------
-    # Scale data if needed
+    # Scale data
     # --------------------------
     if scale_candidates:
         X_scaler = MinMaxScaler().fit(X_init)
@@ -100,7 +85,7 @@ def adaptive_bbo_multi_peak(X_init, y_init, num_iterations=30,
         X_scaler = y_scaler = None
 
     # --------------------------
-    # Logging containers
+    # Logging
     # --------------------------
     history_X, history_y = [], []
     best_results = []
@@ -113,7 +98,7 @@ def adaptive_bbo_multi_peak(X_init, y_init, num_iterations=30,
     # --------------------------
     for i in range(num_iterations):
         # --- Hybrid kernel candidates ---
-        hybrid_kernels = build_hybridRBF_kernel_safe(X_train_scaled, nu_list=[1.5, 2.0, 2.5])
+        hybrid_kernels = build_hybridRBF_kernel_safe(X_train_scaled, nu_list=[0.5,1, 1.5])
 
         best_gp = None
         best_gp_health = -np.inf
@@ -135,14 +120,31 @@ def adaptive_bbo_multi_peak(X_init, y_init, num_iterations=30,
 
         gp = best_gp
         gp_health_history.append(best_gp_health)
+        
 
         # --- Generate multi-peak candidates ---
         n_candidates = (base_candidates + input_dim * candidate_scale)*2
+        # X_candidates_scaled = generate_multi_peak_candidates(
+        #     gp, X_train_scaled, n_candidates=n_candidates,
+        #     top_k_peaks=3, 
+        #     local_scale=0.3 ,
+        #     input_dim=input_dim,
+        #     random_state=random_state
+
+        # )
         X_candidates_scaled = generate_multi_peak_candidates(
             gp, X_train_scaled, n_candidates=n_candidates,
-            top_k_peaks=3, local_scale=0.05, input_dim=input_dim,
+            top_k_peaks=5, 
+            local_scale=0.15 ,
+            input_dim=input_dim,
             random_state=random_state
+
         )
+        mask = np.array([
+        np.any(np.all(np.isclose(candidate, X_train_scaled), axis=1))
+            for candidate in X_candidates_scaled
+        ])
+        X_candidates_scaled = X_candidates_scaled[~mask]
 
         # --- Acquisition: UCB with decaying beta ---
         mu_all, sigma_all = gp.predict(X_candidates_scaled, return_std=True)
@@ -150,21 +152,28 @@ def adaptive_bbo_multi_peak(X_init, y_init, num_iterations=30,
         best_val, next_scaled, best_acq_params = -np.inf, None, {}
         iteration_sigma = []
 
-        beta_0 = 2.5
-        beta_min = 0.5
-        beta = beta_0 - (beta_0 - beta_min) * (i / num_iterations)
-        beta *= best_gp_health
+        # beta_0 = 7
+        # beta_min = 5
+
+        beta_0 = 3
+        beta_min = 1.5
+        decay_rate = 0.0001
+        beta = beta_min + (beta_0 - beta_min) * np.exp(-decay_rate * i) 
+        # beta = beta_0 - (beta_0 - beta_min) * ((i / num_iterations)*2)
+        beta = max(beta * best_gp_health, beta_min)
         best_acq_params = {"UCB_beta": None}  # default
 
         for idx, (mu, sigma) in enumerate(zip(mu_all, sigma_all)):
             mu, sigma = mu.item(), sigma.item()
             iteration_sigma.append(sigma)
-            val = mu + beta * sigma
-            val *= best_gp_health
+            # val = mu + beta * sigma
+            val = acquisition_ei(mu, sigma, y_max)
+
+            # val *= best_gp_health
             if val > best_val:
                 best_val = val
                 next_scaled = X_candidates_scaled[idx]
-                best_acq_params = {"UCB_beta": beta}
+                best_acq_params = {"EI": beta}
 
         history_sigma.append(np.array(iteration_sigma))
 
@@ -231,9 +240,3 @@ def adaptive_bbo_multi_peak(X_init, y_init, num_iterations=30,
     best_idx = np.argmax(history_y)
     return history_X[best_idx], history_y[best_idx], {"X": history_X, "y": history_y}, best_results
 
-# def make_length_bounds(dim, avg_dist):
-#     lb_scalar = avg_dist / 50
-#     ub_scalar = avg_dist * 20
-#     lb = np.full(dim, lb_scalar)
-#     ub = np.full(dim, ub_scalar)
-#     return (lb, ub)
