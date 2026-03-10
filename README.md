@@ -103,7 +103,7 @@ The workflow consists of:
 
 A detailed explanation of the optimisation workflow, modelling choices, and supporting diagrams can be found in the **Concepts and Methodologies Overview**:
 
-- [Diagrams and technical justification of approach](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
+- [Diagrams and Technical Justification of Approach](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
 
 ---
 
