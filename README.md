@@ -37,7 +37,6 @@ The project explores the trade-off between:
 The objective was to:
 
 - **Maximise the output of each black-box function**
-- Use **as few queries as possible**
 - Learn about the **structure of the underlying functions**
 
 Additional goals included:
