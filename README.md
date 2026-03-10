@@ -46,6 +46,14 @@ Additional goals included:
 - Managing and documenting an **end-to-end machine learning project**
 
 ---
+# Project Run 
+
+
+
+Project can be run from this [notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/runfunctions.ipynb)
+
+
+---
 
 # Dataset Structure
 
