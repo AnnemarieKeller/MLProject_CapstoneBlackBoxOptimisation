@@ -46,9 +46,7 @@ Install all dependencies via the provided `requirements.txt`. Required packages 
 - `rich` and `tqdm` for logging and progress visualization.
 
 - Guardrails for structured LLM responses.
-```
-pip install -r requirements.txt
-```
+
 
 
 ## Running the Pipeline
