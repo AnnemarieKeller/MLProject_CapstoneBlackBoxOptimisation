@@ -160,10 +160,10 @@ To support transparency and reproducibility of the BBO Capstone Project, the fol
   [View](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
 
 - **Starting Information**  
-  https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/Overview/startingpoint.md
+  [View](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/Overview/startingpoint.md)
 
 - **Glossary of Terms**  
-  https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/research/glossary.md
+  [View](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/research/glossary.md)
 
 
 ---
@@ -171,7 +171,8 @@ To support transparency and reproducibility of the BBO Capstone Project, the fol
 # Technologies Used
 
 - Python  
-- PyTorch  
+- PyTorch
+- Jupyter Notebooks 
 - Gaussian Process Regression  
 - Bayesian Optimisation  
 - Support Vector Regression  
