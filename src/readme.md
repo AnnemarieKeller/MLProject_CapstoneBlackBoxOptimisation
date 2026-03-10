@@ -10,9 +10,8 @@ This project provides a pipeline to process PDF reports, split them into chunks,
 - Extracts text from PDFs and splits them into manageable chunks.
 - Processes each chunk through a local LLM with Guardrails schema enforcement.
 - Supports multiple LLM configurations:
-  - (**Mini-Orca** (default))
   - **Ollama Mistral** (offline)
-  - **Transformer + LoRA** (optional, fine-tuning)
+  - **Transformer + LoRA** (optional, fine-tuning) via HuggingFace
 
 ---
 
@@ -76,7 +75,7 @@ python main.py
 
 ### LLM Selection
 
-You can choose which LLM to use:
+There are different models which are being trialed: 
 
 - **Mini-Orca**: Lightweight, small-scale model for rapid inference.
 - **Ollama Mistral**: Local Mistral model for offline, high-quality processing.
@@ -118,4 +117,4 @@ Before running the full pipeline, you can verify PDF extraction and chunking by 
 
 ## Summary
 
-This pipeline is designed to streamline the analysis of PDF reports using LLMs, offering flexibility with multiple model choices and optional LoRA training. Structured outputs via Guardrails ensure consistent and reliable results, making it suitable for professional data analysis workflows.
+This pipeline is designed to streamline the analysis of PDF reports using LLMs, offering flexibility with multiple model choices and optional LoRA training. 
