@@ -50,7 +50,9 @@ Additional goals included:
 
 
 
-Project can be run from this [notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/runfunctions.ipynb)
+- Project can be run from this [notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/runfunctions.ipynb)
+- Logs will be [here](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/tree/main/analysis/Functions/analysis/data/weeklybestpredictions/logs)
+- Automatically generated Run reports will be found [here](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/tree/architecture/analysis/Functions/reports) (select the runreport name folder given as a parameter) 
 
 
 ---
@@ -112,6 +114,38 @@ The workflow consists of:
 A detailed explanation of the optimisation workflow, modelling choices, and supporting diagrams can be found in the **Concepts and Methodologies Overview**:
 
 - [Diagrams and Technical Justification of Approach](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
+
+---
+## Hyperparameter Tuning & Strategy Selection
+
+Key **surrogate model parameters** were tuned for each function:
+
+- **Gaussian Process Parameters:** kernel type, length-scale, ν, white noise α, normalization, n_restarts_optimizer  
+- **Acquisition Function Parameters:** UCB β/κ, PI settings  
+- **Weekly Strategies:** defined how acquisition functions were applied dynamically  
+
+**Strategy Types:**  
+- **Dense Exploit:** focus on high-value regions  
+- **Global Explore:** explore widely for unknown peaks  
+- **Refinement:** fine-tune in promising regions  
+- **Mixed / Explore-then-Exploit:** balance exploration and exploitation  
+
+**Summary Table: Hyperparameters & Strategies per Function**
+
+| Function | Name | Kernel | Length-scale | White Noise | Acquisition Params | Strategy |
+|----------|------|--------|-------------|------------|-----------------|---------|
+| 1 | 2D Contamination | Matern | auto (1e-2–1e6) | No | UCB β | Dense Exploit / Global Explore |
+| 2 | 2D Noisy Log-Likelihood | Matern | [1.0,1.0] (1e-2–1e6) | 1e-3 | UCB β / Portfolio | Noisy Explore / Refinement |
+| 3 | 3D Drug Combination | Matern | [1.0]*3 (1e-5–1e8) | 1e-6 | PI / UCB β | Refinement |
+| 4 | 4D Warehouse Placement | Matern | [1.0]*4 (1e-2–1e6) | 1e-3 | UCB β / EI | Mixed / Explore-then-Exploit |
+| 5 | 4D Chemical Yield | Matern | [1.0]*4 (1e-2–1e6) | 1e-6 | UCB β / Portfolio / EI | Global Explore / Explore-then-Exploit |
+| 6 | 5D Cake Recipe | Matern | [1.0]*5 (1e-2–1e6) | 1e-3 | UCB κ / PI / EI | Mixed / Local Exploit |
+| 7 | 6D ML Hyperparameters | Matern | [1.0]*6 (1e-2–1e6) | 1e-6 | UCB β / Portfolio / EI | Refinement / Explore-then-Exploit |
+| 8 | 8D ML Hyperparameters | Matern | [1.0]*8 (1e-2–1e6) | 1e-6 | UCB β / Portfolio / EI | Refinement |
+
+> **Note:** Strategies indicate how acquisition functions were **applied dynamically** each week.
+
+This can be found in the [function config](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/scripts/configs/functionConfig.py) and strategies section of [accquistions](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/1f2536b25a903fb2b36f4e5b7f54a1d7540ae987/scripts/exploration/accquistions.py#L308)
 
 ---
 
