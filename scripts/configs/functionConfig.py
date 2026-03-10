@@ -2,15 +2,16 @@ FUNCTION_CONFIG = {
 
   1:{"name":"2D Contamination",
     "dim": 2,
-    "acquisition": "UCB",           # UCB works well for source localisation
+    "acquisition": "UCB",           # UCB for source localisation
     "kernel_type": "Matern",
     "add_white": False,
-    "length_scale": "auto",         # let BO learn correlation structure
-    "length_scale_bounds": (1e-2, 1e2),
-    "nu": 2.5,                      # smooth kernel (because function is smooth)
-    "alpha": 1e-6,                  # low noise because function is deterministic
+    "length_scale": "auto",         
+    "length_scale_bounds":  (1e-2, 1e6),  # instead of 1e2
+#(1e-2, 1e2),
+    "nu": 2.5,                      
+    "alpha": 1e-6,                  # 
     "normalize_y": True,
-    "n_restarts_optimizer": 8,      # more robust hyperparameter fitting
+    "n_restarts_optimizer": 8,      # 
     "boundary_penalty": True
 },
 
@@ -23,10 +24,10 @@ FUNCTION_CONFIG = {
         "white_noise": 1e-3,
         "white_bounds": (1e-5, 1e1),
         "length_scale": [1.0, 1.0],
-        "length_scale_bounds": (1e-2, 1e2),
+        "length_scale_bounds": (1e-2, 1e6),
         "C_bounds": (1e-3, 1e3),
-        "alpha": 1e-3,
-        "nu": 1.5,
+        "alpha": 1e-2,
+        "nu": 0.5,
         "normalize_y": True,
         "n_restarts_optimizer": 10,
         "boundary_penalty": True,
@@ -54,7 +55,7 @@ FUNCTION_CONFIG = {
         "kernel_type": "Matern",
         "add_white": True,
         "length_scale": [1.0]*4,
-        "length_scale_bounds": (1e-2, 1e2),
+        "length_scale_bounds": (1e-2, 1e6),
         "C_bounds": (1e-3, 1e3),
         "alpha": 1e-3,
         "normalize_y": True,
@@ -64,12 +65,13 @@ FUNCTION_CONFIG = {
     5: {  "name": "4D Chemical Yield",
         "dim": 4,
         "acquisition": "UCB",
-        "kernel_type": "RBF",
+        "kernel_type": "MATERN",
         "add_white": True,
         "length_scale": [1.0]*4,
-        "length_scale_bounds": (1e-2, 1e2),
+        "length_scale_bounds": (1e-2, 1e6),
         "C_bounds": (1e-3, 1e3),
-        "alpha": 1e-3,
+        "alpha": 1e-6,
+        "nu": 2.5,
         "normalize_y": True,
         "n_restarts_optimizer": 10,
         "boundary_penalty": False
@@ -78,13 +80,16 @@ FUNCTION_CONFIG = {
         "dim": 5,
         "acquisition": "UCB",
         "kernel_type": "Matern",
+        "add_white": True,
+        "white_noise": 1e-3,
+        "white_bounds": (1e-5, 1e1),
         "length_scale": [1.0]*5,
-        "length_scale_bounds": (1e-2, 1e2),
+        "length_scale_bounds": (1e-2, 1e6),
         "C_bounds": (1e-3, 1e4),
-        "alpha": 1e-6,
-        "nu": 1.5,
+        "alpha": 1e-2,
+        "nu": 0.5,
         "normalize_y": True,
-        "n_restarts_optimizer": 7,
+        "n_restarts_optimizer": 15,
         "boundary_penalty": True
     },
     7: { "name":"6D ML Hyperparameters",
@@ -92,12 +97,14 @@ FUNCTION_CONFIG = {
         "acquisition": "UCB",
         "kernel_type": "Matern",
         "add_white": True,
+        "length_scale": [1.0]*6,
+        "length_scale_bounds": (1e-2, 1e6),
         "degree": 3,
         "coef0": 1.0,
         "C_bounds": (1e-3, 1e4),
         "alpha": 1e-6,
         "normalize_y": True,
-        "n_restarts_optimizer": 10,
+        "n_restarts_optimizer": 20,
         "boundary_penalty": True
     },
     8: {  "name":" 8D ML Hyperparameters",
@@ -106,11 +113,11 @@ FUNCTION_CONFIG = {
         "kernel_type": "Matern",
         "add_white": True,
         "length_scale": [1.0]*8,
-        "length_scale_bounds": (1e-2, 1e2),
+        "length_scale_bounds": (1e-2, 1e6),
         "C_bounds": (1e-3, 1e4),
         "alpha": 1e-6,
         "normalize_y": True,
-        "n_restarts_optimizer": 10,
+        "n_restarts_optimizer": 20,
         "boundary_penalty": True
     }
 }

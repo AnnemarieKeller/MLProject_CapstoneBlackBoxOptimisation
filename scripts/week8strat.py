@@ -5,11 +5,11 @@ import os
 from datetime import datetime
 from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from scripts.utils.logging.logger import * 
-from scripts.accquistions import * 
-from scripts.candidateGeneration import * 
+from scripts.exploration.accquistions import * 
+from scripts.exploration.candidateGeneration import * 
 from scripts.setup.gpBuilder import * 
 from scripts.utils.reports.reportbuilder import *
-from scripts.utils.selfHealing_BO import *
+# from scripts.utils.selfHealing_BO import *
 from scripts.analysis.gphealth import * 
 
 
@@ -30,9 +30,7 @@ function_strategy_map = {
     8: {"type": "refinement", "acq": ["UCB", "EI"]}
 }
 # ------------------------------
-# Function strategy mapping with recommended acquisition values
-# type: general strategy type
-# acq: list of dicts with acquisition function and recommended parameters
+# 
 # function_strategy_map = {
 #     1: {"type": "dense_exploit", 
 #         "acq": [{"name": "UCB", "kappa": 3.0}]},  # focus on exploitation
@@ -289,16 +287,7 @@ def adaptive_bbo_weekly_strategy100(
         history_sigma=history_sigma
         )
 
-    # create_function_report(
-    #     function_id,
-    #     gp_health_history,
-    #     iteration_acq_history,
-    #     history_X,
-    #     history_y,
-    #     best_results,
-    #     save_dir=log_dir,
-    #     external_ref=export_prefix  # same as export_prefix
-    # )
+  
 
     best_idx = np.argmax(history_y)
     return history_X[best_idx], history_y[best_idx], {"X": history_X, "y": history_y}, best_results

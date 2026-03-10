@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
@@ -12,8 +13,9 @@ from sklearn.model_selection import KFold
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import Matern, RBF, WhiteKernel
 from sklearn.metrics import mean_squared_error, pairwise_distances, davies_bouldin_score
-from scripts.utils.generateX_Y import *
-from scripts.BBOloop import *
+from scripts.utils.read_inputs_outputs import *
+# from scripts.archive.BBOloop import *
+# from scripts.archive.BBOloop import *
 import scripts.configs.functionConfig as funcConfig
 
 
@@ -128,7 +130,7 @@ def recommend_bo_strategy(X, y, noise_threshold=0.05, sparse_percentile=25):
     n_samples, n_features = X.shape
     y_var = np.var(y)
     
-    # --- 1. Noise estimation ---
+    # --- Noise estimation ---
     # Compute local output variation for nearest neighbors
     nbrs = NearestNeighbors(n_neighbors=min(5, n_samples)).fit(X)
     distances, indices = nbrs.kneighbors(X)
@@ -143,7 +145,7 @@ def recommend_bo_strategy(X, y, noise_threshold=0.05, sparse_percentile=25):
     strategy['is_noisy'] = is_noisy
     strategy['noise_ratio'] = noise_ratio
     
-    # --- 2. Sparsity / coverage ---
+    # ---  Sparsity / coverage ---
     avg_distances = distances.mean(axis=1)
     sparse_threshold = np.percentile(avg_distances, 100 - sparse_percentile)
     sparse_ratio = (avg_distances > sparse_threshold).mean()
@@ -151,7 +153,7 @@ def recommend_bo_strategy(X, y, noise_threshold=0.05, sparse_percentile=25):
     strategy['sparse_ratio'] = sparse_ratio
     strategy['sparse_threshold'] = sparse_threshold
 
-    # --- 3. Local optima estimate ---
+    # ---  Local optima estimate ---
     # Count points that are local maxima among neighbors
     local_maxima = 0
     for i in range(n_samples):
@@ -205,7 +207,7 @@ def analyze_function(X, Y, top_frac=0.1):
     n_samples, dim = X.shape
     
     # -----------------
-    # 1. Noise estimation (local variability)
+    #  Noise estimation (local variability)
     # -----------------
     dists = squareform(pdist(X))
     np.fill_diagonal(dists, np.nan)
@@ -216,24 +218,24 @@ def analyze_function(X, Y, top_frac=0.1):
     noise_estimate = np.median(Y_diff)
     
     # -----------------
-    # 2. Output scale
+    #  Output scale
     # -----------------
     Y_range = Y.max() - Y.min()
     
     # -----------------
-    # 3. Smoothness estimate (Spearman correlation of input distances vs output distances)
+    #  Smoothness estimate (Spearman correlation of input distances vs output distances)
     # -----------------
     smooth_corr = spearmanr_correlation(X, Y)
     
     # -----------------
-    # 4. Dimensional relevance via RandomForest
+    #  Dimensional relevance via RandomForest
     # -----------------
     rf = RandomForestRegressor(n_estimators=100)
     rf.fit(X, Y)
     feature_importances = rf.feature_importances_
     
     # -----------------
-    # 5. Multi-modality estimate (clustering top outputs)
+    # Multi-modality estimate (clustering top outputs)
     # -----------------
     top_k = max(int(top_frac * n_samples), 2)
     top_idx = np.argsort(Y)[-top_k:]
@@ -383,7 +385,7 @@ def update_function_config(function_data, FUNCTION_CONFIG):
 
         n_samples, dim = X.shape
 
-        # 1. Noise estimation
+        #  Noise estimation
         dists = squareform(pdist(X))
         np.fill_diagonal(dists, np.nan)
         nn_idx = np.nanargmin(dists, axis=1)
@@ -391,7 +393,7 @@ def update_function_config(function_data, FUNCTION_CONFIG):
         noise_estimate = np.median(Y_diff)
         Y_range = Y.max() - Y.min()
 
-        # 2. Smoothness
+        #  Smoothness
         X_dist_flat = pdist(X)
         Y_dist_flat = pdist(Y.reshape(-1,1))
         smooth_corr, _ = spearmanr(X_dist_flat, Y_dist_flat)
@@ -499,20 +501,6 @@ def spearmanr_correlation (X, y):
     print("Spearman correlation (smoothness):", rho)
     return rho
 
-# def analyze_density_clusters(X, y, eps=0.1, min_samples=5):
-#     # DBSCAN (or other density-based) clustering in input space
-#     clustering = DBSCAN(eps=eps, min_samples=min_samples).fit(X)
-#     labels = clustering.labels_  # -1 = noise
-#     unique = set(labels)
-#     for lbl in unique:
-#         mask = (labels == lbl)
-#         print("Cluster", lbl, "size", mask.sum(), 
-#               "y_mean", np.mean(y[mask]), "y_std", np.std(y[mask]))
-#     return labels
-
-
-
-
 def gp_cv_evaluate(X, y,
                    kernel=None,
                    n_splits=5,
@@ -567,9 +555,7 @@ def gp_cv_evaluate(X, y,
     print("CV: mean RMSE = %.4f ± %.4f" % (np.mean(rmses), np.std(rmses)))
     return fold_results
 
-    # diagnostics.py
-
-
+   
 
 def fitness_distance_correlation(X, y, x_best=None):
     """
@@ -648,25 +634,25 @@ def analyze_landscape(X, y, gp_kernel=None, cluster_eps=0.1, cluster_min_samples
     Returns dictionary of results.
     """
     results = {}
-    # 1. Clustering / density analysis
+    #  Clustering / density analysis
     labels, cluster_info, dbi = density_clustering_analysis(X, y,
                                                             eps=cluster_eps,
                                                             min_samples=cluster_min_samples)
     results['clusters'] = cluster_info
     results['dbi'] = dbi
 
-    # 2. Fitness-distance correlation
+    #  Fitness-distance correlation
     fdc = fitness_distance_correlation(X, y)
     results['fitness_distance_correlation'] = fdc
 
-    # 3. GP cross-validation uncertainty vs error
+    #  GP cross-validation uncertainty vs error
     mse, var_pred, err_var_corr = gp_cv_uncertainty_analysis(X, y,
                                                              kernel=gp_kernel, n_splits=cv_splits)
     results['cv_mse'] = mse
     results['cv_pred_variance_mean'] = var_pred
     results['cv_error_variance_corr'] = err_var_corr
 
-    # 4. Surrogate peak detection (if gp_kernel provided)
+    #  Surrogate peak detection (if gp_kernel provided)
     if gp_kernel is not None:
         gp_full = GaussianProcessRegressor(kernel=gp_kernel, normalize_y=True).fit(X, y)
         peaks, peak_mus, peak_sigmas = surrogate_peak_detection(X, y, gp_full)
@@ -694,7 +680,7 @@ def estimate_noise_and_min_prob(X, y, gp=None):
         # Not enough points to judge
         return 0.0, 0.5
 
-    # ----- Method 1: look at residuals -----
+    # -----  look at residuals -----
     if gp is not None:
         # Predict with GP
         mu, sigma = gp.predict(X, return_std=True)
@@ -713,8 +699,8 @@ def estimate_noise_and_min_prob(X, y, gp=None):
     noise_level = np.clip(noise_level, 0.0, 1.0)
 
     # ----- Map noise level to min_prob -----
-    # More noise → lower min_prob (allow exploration)
-    # Less noise → higher min_prob (exploit promising points)
+    # More noise : lower min_prob (allow exploration)
+    # Less noise : higher min_prob (exploit promising points)
     suggested_min_prob = 0.7 - 0.4 * noise_level  # range ~0.3 → 0.7
     suggested_min_prob = np.clip(suggested_min_prob, 0.2, 0.7)
 
