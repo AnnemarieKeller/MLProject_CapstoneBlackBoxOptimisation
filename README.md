@@ -1,81 +1,150 @@
 # MLProject_Imperial
-This Project is the capstone project for the Professional ML and AI Certificate which utilises the learnt ML concepts to solve a problem 
+### Black-Box Bayesian Optimisation Capstone Project
+
+![Python](https://img.shields.io/badge/Python-3.x-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-orange)
+![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Bayesian%20Optimisation-green)
+![Status](https://img.shields.io/badge/Project-Completed-success)
+
+This project was completed as the **Capstone project for the Professional Machine Learning and AI Certificate**.  
+The goal was to apply **Bayesian Optimisation techniques** to maximise the outputs of several **unknown black-box functions** under limited query budgets.
+
+The project is inspired by the **NeurIPS 2020 Black-Box Optimization Challenge**, simulating real-world optimisation tasks where the underlying function is unknown and costly to evaluate.
+
+---
+
+# Project Overview
+
+Black-Box Optimisation (BBO) focuses on solving problems where:
+
+- The **objective function is unknown**
+- Only **input–output observations** are available
+- The number of **function evaluations is limited**
+
+To address this, the project builds **surrogate models** that approximate the unknown functions and guide the selection of new query points.
+
+Each week, new candidate inputs were generated and submitted to a project portal, which returned the evaluated outputs. Over **13 weeks**, the dataset gradually expanded and the optimisation strategy improved.
+
+The project explores the trade-off between:
+
+- **Exploration** – sampling unknown regions  
+- **Exploitation** – focusing on areas likely to produce high outputs  
+
+---
+
+# Project Goal
+
+The objective was to:
+
+- **Maximise the output of each black-box function**
+- Use **as few queries as possible**
+- Learn about the **structure of the underlying functions**
+
+Additional goals included:
+
+- Implementing **Bayesian optimisation pipelines**
+- Experimenting with **surrogate models**
+- Managing and documenting an **end-to-end machine learning project**
+
+---
+
+# Dataset Structure
+
+Each function initially provided:
+
+- **input vectors**
+- **corresponding output values**
+
+The dataset expanded weekly with new evaluations.
+
+## Input Characteristics
+
+- Dimensionality varies per function
+
+| Function | Dimensions |
+|----------|------------|
+| Function 1 | 2D |
+| Function 2 | 2D |
+| Function 3 | 3D |
+| Function 4 | 4D |
+| Function 5 | 4D |
+| Function 6 | 5D |
+| Function 7 | 6D |
+| Function 8 | 8D |
+
+## Submission Format
+
+Inputs were submitted in the format:
+
+```
+x1-x2-x3-...-xn
+```
+
+with **six decimal places**.
+
+Example:
+
+```
+0.234567-0.345678-0.456789-0.567890
+```
+
+---
+
+# Technical Approach
+
+The project primarily uses **Bayesian Optimisation** with **Gaussian Process regression** as the surrogate model.
+
+The workflow consists of:
+
+1. Fit a surrogate model to existing observations  
+2. Use an **acquisition function** to identify promising points  
+3. Submit new candidate inputs  
+4. Observe outputs  
+5. Update the model and repeat  
+
+---
+
+# Project Workflow
+
+```
+Initial Dataset
+      ↓
+Train Surrogate Model (Gaussian Process / SVR)
+      ↓
+Compute Acquisition Function
+      ↓
+Select Candidate Inputs
+      ↓
+Submit Inputs to Portal
+      ↓
+Receive Outputs
+      ↓
+Update Dataset
+      ↓
+Repeat
+```
 
 
-### Project Summary
 
-### Project Goal 
+# Results and Analysis
 
-#### Dependencies used 
-* Python,
-* Pytorch, 
-##### How to run the project 
-### Project Overview
-The Black-Box Optimization (BBO) capstone challenges us to maximise outputs of unknown functions using limited queries. Each function represents a real-world optimization problem, from hyperparameter tuning to chemical process optimisation. The purpose is to practice data-driven decision-making under uncertainty, combining exploration and exploitation strategies
+Over the course of the **13-week optimisation process**, the models progressively improved their ability to identify high-performing input regions.
 
-### Inputs and Outputs
-Inputs:  The initial dataset provided 10 inputs and 10 outputs, which serve as the starting point for model training or Bayesian optimisation:
+Key outcomes:
 
- 
+- Improved understanding of the behaviour of each function  
+- Effective exploration of high-dimensional search spaces  
+- Demonstration of Bayesian optimisation strategies under limited query budgets  
 
-A vector of numerical values between 0 and 1.
+Detailed results can be found in the weekly reports.
 
-Dimensionality varies depending on the function:
+- **Weekly Report**  
+[View summarized report](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/Weekly%20Reports/report.md)
 
-Function 1 & 2 → 2D
+- **Weekly Predictions**  
+[View the generated highest predictions per run](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/tree/main/analysis/Functions/analysis/data/weeklybestpredictions)
 
-Function 3 → 3D
-
-Function 4 & 5 → 4D
-
-Function 6 → 5D
-
-Function 7 → 6D
-
-Function 8 → 8D
-
-Format for submission: x1-x2-x3-...-xn with six decimal places for each number.
-
-Example for 2D: 0.123456-0.654321
-
-Example for 4D: 0.234567-0.345678-0.456789-0.567890
-
-### Outputs:
-
-A single numeric value representing the function’s performance or “score.”
-
-The higher the output, the better. Some outputs may be transformed (e.g., negative of a cost) so that maximisation is consistent across functions.
-
-Each week after submission of inputs, a new set of input and outputs for each function is received
-Challenge Objectives
-     Goal: Maximise each function’s output using as few queries as possible.
-
-     Constraints: Limited query budget (increasing from 10 to 22 points), unknown and noisy function surfaces, high-dimensional inputs.
-
-Key Consideration: Balance exploration with exploitation 
-
- 
-
-### Technical Approach
-Primarily use Gaussian Process regression to model the unknown functions. Query selection relies on:
-
-UCB (Upper Confidence Bound): Suited for noisy or multi-modal functions, balancing exploration and exploitation.
-
-PI (Probability of Improvement): Suitable for low-noise, unimodal functions.
-
-SVR (Support Vector Regression): Helps approximate non-linear or high-dimensional surfaces when GP uncertainty estimates are unreliable.
-
-| Function | Acquisition Function | Reasoning | SVR Suitability | Kernel |
-|----------|--------------------|-----------|----------------|--------|
-| 1 – 2D Contamination | UCB | Sparse outputs; exploration crucial to locate non-zero zones. | ☐ | - |
-| 2 – 2D Noisy Log-Likelihood | UCB | Noisy and multi-modal; UCB balances exploration and exploitation. |  ☐ | - |
-| 3 – 3D Drug Combination | UCB | Multi-modal; avoids getting trapped in local minima, prioritises safe regions. | ☑ | RBF |
-| 4 – 4D Warehouse Placement | UCB | High-dimensional, dynamic system; exploration needed to find promising regions. | ☑ | RBF vs Poly |
-| 5 – 4D Chemical Yield | PI | Unimodal and smooth; exploitation-focused acquisition quickly finds the peak. | ☑ | RBF vs Linear |
-| 6 – 5D Cake Recipe | UCB | Complex, multi-factor landscape; exploration reduces risk of missing high-scoring regions. |☑  | RBF |
-| 7 – 6D ML Hyperparameters | UCB | High-dimensional, unknown surface; exploration best option | ☑  | RBF |
-| 8 – 8D ML Hyperparameters | UCB | Very high-dimensional; complex interactions among parameters; global exploration needed to find strong local maxima. |☑  | RBF |
-
+---
 
 ## Documentation
 
@@ -86,6 +155,35 @@ To support transparency and reproducibility of the BBO Capstone Project, the fol
 
 - **Model Card:** Summarises the optimisation approach used, including strategy, performance, assumptions, limitations, and ethical considerations.  
   [View Model Card](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/modelcard.md)
+- **Concepts and Methodologies Overview**  
+  Provides an overview of Bayesian optimisation concepts, modelling approaches, and workflow diagrams used in the project.  
+  [View](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
+
+- **Starting Information**  
+  https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/Overview/startingpoint.md
+
+- **Glossary of Terms**  
+  https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/research/glossary.md
 
 
+---
 
+# Technologies Used
+
+- Python  
+- PyTorch  
+- Gaussian Process Regression  
+- Bayesian Optimisation  
+- Support Vector Regression  
+
+---
+
+# Learning Outcomes
+
+This project provided hands-on experience with:
+
+- Bayesian optimisation techniques  
+- Surrogate modelling  
+- Exploration vs exploitation strategies  
+- High-dimensional optimisation  
+- ML project documentation and reproducibility  
