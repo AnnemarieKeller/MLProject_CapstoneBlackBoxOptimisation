@@ -99,7 +99,11 @@ The workflow consists of:
 2. Use an **acquisition function** to identify promising points  
 3. Submit new candidate inputs  
 4. Observe outputs  
-5. Update the model and repeat  
+5. Update the model and repeat
+
+A detailed explanation of the optimisation workflow, modelling choices, and supporting diagrams can be found in the **Concepts and Methodologies Overview**:
+
+- [Diagrams and technical justification of approach](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
 
 ---
 
@@ -156,13 +160,13 @@ To support transparency and reproducibility of the BBO Capstone Project, the fol
   [View Model Card](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/modelcard.md)
 - **Concepts and Methodologies Overview**  
   Provides an overview of Bayesian optimisation concepts, modelling approaches, and workflow diagrams used in the project.  
-  [View](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
+  [View Technical Approach](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/research/general.md)
 
 - **Starting Information**  
-  [View](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/Overview/startingpoint.md)
+  [View Initial Information](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/Overview/startingpoint.md)
 
 - **Glossary of Terms**  
-  [View](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/research/glossary.md)
+  [View Glossary](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/research/glossary.md)
 
 
 ---
