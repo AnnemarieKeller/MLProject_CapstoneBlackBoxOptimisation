@@ -9,10 +9,10 @@ A Gaussian Process surrogate model was used to predict outputs and guide input s
 **Goal:** Maximize outputs efficiently while learning about function landscapes.
 
 **Initial Data:**  
-[Download the initial data ZIP](data/initial_data.zip)
+[Download the initial data ZIP](../../data/original/Initial_data_points_starter.zip)
 
 **Weekly Results Notebook:**  
-[WeeklyResults.ipynb](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/WeeklyResults.ipynb)
+[WeeklyResults.ipynb](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/WeeklyResults.ipynb)
 
 ---
 
@@ -29,7 +29,7 @@ A Gaussian Process surrogate model was used to predict outputs and guide input s
 **Conclusion & Reasoning:**  
 - Early notebook-based prototyping is useful but **script-based implementations are required** for reproducibility.
 
-**Notebook Reference:** [General BO notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/firstcodeexample.ipynb)  
+**Notebook Reference:** [General BO notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/firstcodeexample.ipynb)  
 > *Note: This notebook is provided as a sample for transparency; it does not include exact submissions.*
 
 ---
@@ -52,7 +52,7 @@ A Gaussian Process surrogate model was used to predict outputs and guide input s
 ## Week 3 – SVR Surrogates & Dimensional Adaptation
 
 **Activities:**  
-- Tested SVR surrogates ([SVR notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/svr.ipynb)) on **Functions 4–8**.  
+- Tested SVR surrogates ([SVR notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/svr.ipynb)) on **Functions 4–8**.  
 - Implemented dimension-aware candidate generation:
     - ≤3D: dense random grid or LHS  
     - 4–5D: LHS or Sobol sequences  
@@ -75,7 +75,7 @@ A Gaussian Process surrogate model was used to predict outputs and guide input s
 ## Week 4 – Neural Networks & Kernel Engineering
 
 **Activities:**  
-- Tested neural network surrogates ([NN notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/neuralnetworks.ipynb)) on Functions 3, 6, 7.  
+- Tested neural network surrogates ([NN notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/neuralnetworks.ipynb)) on Functions 3, 6, 7.  
 - Applied polynomial feature expansion to capture low-order interactions.  
 - Experimented with GP kernels: RBF, Matern, WhiteKernel.
 
@@ -107,7 +107,7 @@ A Gaussian Process surrogate model was used to predict outputs and guide input s
 ## Week 6 – Migration to Python Scripts & Adaptive Kernel Lengths
 
 **Activities:**  
-- Migrated all experiments to standalone Python scripts ([Optimization Pipeline](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/OptimizationPipeline.ipynb)).  
+- Migrated all experiments to standalone Python scripts ([Optimization Pipeline](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/runfunctions.ipynb)).  
 - Introduced **adaptive GP kernel length scales**.
 
 **Observations:**  
@@ -335,11 +335,10 @@ here examples for function 5 through week 1 - 13 of the experiment:
 
 ## Links
 
-- **General BO notebook (Weeks 1–2):** [General BO](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/firstcodeexample.ipynb)  
-- **SVR notebook:** [SVR](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/svr.ipynb)  
-- **Random Forest notebook:** [RF](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/rainforestsurrogate.ipynb)  
-- **Neural Network notebook:** [NN](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/notebooks/neuralnetworks.ipynb)  
-- **Optimization pipeline / final GP scripts:** [notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/functions/dynamicloop.ipynb)  
-- **Weekly results:** [WeeklyResults.ipynb](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/analysis/WeeklyResults.ipynb)  
-- **Datasheet:** [datasheet.md](docs/datasheet.md)  
-- **Model card:** [model_card.md](docs/model_card.md)
+- **General BO notebook (Weeks 1–2):** [General BO](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/firstcodeexample.ipynb)  
+- **SVR notebook:** [SVR](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/notebooks/svr.ipynb)  
+- **Random Forest notebook:** [RF](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/main/rainforestsurrogate.ipynb)  
+- **Neural Network notebook:** [NN](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/architecture/main/neuralnetworks.ipynb)  
+- **Optimization pipeline / final GP scripts:** [notebook](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/functions/dynamicloop.ipynb)  
+- **Weekly results:** [WeeklyResults.ipynb](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/main/analysis/WeeklyResults.ipynb)  
+
