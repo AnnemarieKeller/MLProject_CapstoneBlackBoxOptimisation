@@ -81,6 +81,7 @@ A kernel hyperparameter that determines how rapidly the function is allowed to c
 
 ## Local Optimum
 A best value within a limited region but not globally optimal.
+
 ### Log-likelihood  
 A measure of how likely the observed data is given the model parameters. In Gaussian Process models it evaluates how well the GP explains the observed outputs, and is used to tune kernel hyperparameters. Higher log-likelihood means the model fits the data better.
 ### Log marginal likelihood  
@@ -165,8 +166,4 @@ A Python library used for optimization, statistical functions, and scientific co
 ## Matplotlib
 A Python library used for visualizing optimization results and model behavior.
 
-## Global Optimum
-The best achievable value across the entire input space.
 
-## Local Optimum
-A best value within a limited region but not globally optimal.
