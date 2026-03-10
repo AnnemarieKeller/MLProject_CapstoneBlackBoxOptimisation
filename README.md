@@ -220,8 +220,11 @@ To support transparency and reproducibility of the BBO Capstone Project, the fol
 - Jupyter Notebooks 
 - Gaussian Process Regression  
 - Bayesian Optimisation  
-- Support Vector Regression  
-
+- Support Vector Regression
+- NumPy
+- Pandas
+- SciPy
+- Matplotlib
 ---
 
 # Learning Outcomes
