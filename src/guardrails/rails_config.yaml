@@ -1,0 +1,39 @@
+models:
+  - name: analyse_topic
+    model: mistral        # the model name you pass to OllamaLLM
+    engine: ollama        # required for Nemoguardrails to identify LLM type
+    description: "Structured output schema for data analysis"
+    type: object
+    properties:
+      explanation:
+        type: string
+      key_points:
+        type: array
+        items:
+          type: string
+      confidence_level:
+        type: string
+        enum: [high, medium, low]
+      recommendations:
+        type: array
+        items:
+          type: string
+      potential_issues:
+        type: array
+        items:
+          type: string
+      important_metrics:
+        type: array
+        items:
+          type: string
+      summary:
+        type: string
+
+instructions:
+  - name: analyse_topic
+    type: completion
+    description: "Analyse the result as if you were a data scientist"
+    content: |
+      Analyse the following text as a data scientist. Provide structured output using the schema `analyse_topic`.
+      Include explanation, key points, confidence level, recommendations, potential issues, important metrics, and a short summary.
+    output: analyse_topic
