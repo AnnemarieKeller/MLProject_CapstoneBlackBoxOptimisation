@@ -235,4 +235,5 @@ This project provided hands-on experience with:
 - ML project documentation and reproducibility
 
 # Further Experimentation 
-- [LLM Analysis](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/llm_integration/src/readme.md) of PDF reports to suggest adjustments  ( this is meant to be simplified version of current research on the [integration of LLMs into the bayesian optimision loops](https://proceedings.iclr.cc/paper_files/paper/2024/file/84b8d9fcb4e262fcd429544697e1e720-Paper-Conference.pdf) 
+- [LLM Analysis](https://github.com/AnnemarieKeller/MLProject_CapstoneBlackBoxOptimisation/blob/llm_integration/src/readme.md) of PDF reports to suggest adjustments  ( this is meant to be simplified version of current research on the integration of [LARGE LANGUAGE MODELS TO ENHANCE BAYESIAN
+OPTIMIZATION](https://proceedings.iclr.cc/paper_files/paper/2024/file/84b8d9fcb4e262fcd429544697e1e720-Paper-Conference.pdf) 
