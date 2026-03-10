@@ -2,7 +2,7 @@
 ### Black-Box Bayesian Optimisation Capstone Project
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue)
-![PyTorch](https://img.shields.io/badge/PyTorch-Deep%20Learning-orange)
+![TensorFlow/Keras](https://img.shields.io/badge/TensorFlow%2FKeras-Deep%20Learning-orange)
 ![Machine Learning](https://img.shields.io/badge/Machine%20Learning-Bayesian%20Optimisation-green)
 ![Status](https://img.shields.io/badge/Project-Completed-success)
 
@@ -216,15 +216,12 @@ To support transparency and reproducibility of the BBO Capstone Project, the fol
 # Technologies Used
 
 - Python  
-- PyTorch
-- Jupyter Notebooks 
-- Gaussian Process Regression  
-- Bayesian Optimisation  
-- Support Vector Regression
-- NumPy
-- Pandas
+- NumPy  
+- Pandas  
+- Matplotlib  
+- Scikit-learn  
 - SciPy
-- Matplotlib
+- TensorFlow
 ---
 
 # Learning Outcomes
