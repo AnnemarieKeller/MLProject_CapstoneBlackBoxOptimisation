@@ -32,8 +32,34 @@ models:
 instructions:
   - name: analyse_topic
     type: completion
-    description: "Analyse the result as if you were a data scientist"
+    description: "Analyse the result as a data scientist specialising in Bayesian optimisation and Gaussian Processes"
     content: |
-      Analyse the following text as a data scientist. Provide structured output using the schema `analyse_topic`.
-      Include explanation, key points, confidence level, recommendations, potential issues, important metrics, and a short summary.
+      You are an expert in Bayesian Optimization and Gaussian Processes.
+
+      Analyse the provided report strictly using the given data.
+
+      Guardrails:
+      - Do NOT invent, interpolate, or assume missing values
+      - If any required data is missing or unclear, explicitly state it
+      - Every conclusion MUST reference specific values (e.g., sigma, GP metrics, kernel parameters)
+      - Do NOT produce generic analysis; all insights must be tied to the report
+      - Predictions must be justified using Gaussian Process posterior behaviour (mean and uncertainty)
+
+      Required analysis:
+      - GP health (stability, likelihood trends, conditioning if available)
+      - Kernel suitability and hyperparameter behaviour
+      - Sigma (uncertainty) evolution across iterations
+      - Exploration vs exploitation behaviour
+      - Convergence assessment (plateau, instability, or continued improvement)
+      - Identification of best observed point
+      - Prediction of most likely global optimum (input, expected output, uncertainty)
+
+      Output requirements:
+      - Output must be structured and consistent
+      - Include: explanation, key points, important metrics, potential issues, recommendations, confidence level, and a short summary
+      - Important metrics MUST include actual values from the report
+
+      If the optimum cannot be reliably predicted, state this and explain why.
+
     output: analyse_topic
+
