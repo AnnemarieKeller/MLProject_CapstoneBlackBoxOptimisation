@@ -65,7 +65,10 @@ for pdf_path in pdf_paths:
         chunks = load_and_chunk_pdf(pdf_path)
 
         for chunk in chunks:
-            context = "Company follows IFRS accounting, historical trends stable."
+            context = f"""
+                        Analyzing PDF: '{pdf_name}'.
+                        This document is about Gaussian Processor in Bayesian optimization. Focus on methods, assumptions, results, and insights relevant to optimizing black-box functions.
+                        """
             input_text = pdf_analysis_prompt.format(input=chunk.page_content, context=context)
 
             if USE_LORA:
